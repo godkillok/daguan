@@ -83,12 +83,14 @@ def benchmark(clf):
     pred = clf.predict(X_test)
     test_time = time.time() - t0
     print("test time:  %0.3fs" % test_time)
-
+    print('X_train_test')
     train_pred = clf.predict(X_train_test)
     score = metrics.accuracy_score(y_train_test, train_pred)
     print("accuracy:   %0.3f" % score)
 
-    print(classification_report(y_train_test, train_pred))
+    print('X_train')
+    train_pred = clf.predict(X_train)
+    print(classification_report(y_train, train_pred))
     clf_descr = str(clf).split('(')[0]
     return clf_descr, score, train_time, test_time
 
