@@ -100,12 +100,15 @@ def benchmark(clf):
     train_pred = clf.predict(X_train)
     print(classification_report(y_train, train_pred))
     clf_descr = str(clf).split('(')[0]
-    return clf_descr, score, train_time, test_time
+    return clf_descr, score, train_time, test_time,pred
 
 results=[]
 
 from sklearn.ensemble import VotingClassifier
-voting_clf = VotingClassifier( estimators=[("lr", LogisticRegression(C=4, dual=True)), ("rf", RandomForestClassifier(n_estimators=100)), ("svc", MultinomialNB())],n_jobs=4, voting="soft" )
+voting_clf = VotingClassifier( estimators=[("lr", LogisticRegression(C=4, dual=True)), ("rf", RandomForestClassifier(n_estimators=100)), ("svc", MultinomialNB())],voting="soft" )
+
+test_pred={}
+test_pred['id']=test_id
 for clf, name in (
         # (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
         # # (Perceptron(n_iter=50), "Perceptron"),
@@ -115,12 +118,17 @@ for clf, name in (
         (RandomForestClassifier(n_estimators=100,n_jobs=4), "Random forest"),
         (LogisticRegression(C=4, dual=True,n_jobs=4),"Logistic Regression"),
             (svm.LinearSVC(),"LinearSVC"),
+
         (voting_clf,'voting')
 ):
     print('=' * 80)
     print(name)
-    print(results.append(benchmark(clf)))
+    clf_descr, score, train_time, test_time, pred=benchmark(clf)
+    test_pred[name]=pred
+    results.append((clf_descr, score, train_time, test_time))
 
+test_pred_pd=pd.DataFrame.from_dict(test_pred)
+test_pred_pd.to_csv('../output/base.csv',index=False,index_label=False,header=True)
 print(results)
 n_estimator=100
 

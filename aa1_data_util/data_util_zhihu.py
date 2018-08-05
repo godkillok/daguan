@@ -12,10 +12,12 @@ from tflearn.data_utils import pad_sequences
 _GO="_GO"
 _END="_END"
 _PAD="_PAD"
-
+import  fastText
 def create_voabulary(simple=None,word2vec_model_path=PATH+'out.bin',name_scope=''): #zhihu-word2vec-multilabel.bin-100
     cache_path =PATH+'cache_vocabulary_label_pik/'+ name_scope + "_word_voabulary.pik"
     print("cache_path:",cache_path,"file_exists:",os.path.exists(cache_path))
+    model = fastText.load_model('/home/tom/new_data/sur_dfidf.bin')
+    result = model.
     if os.path.exists(cache_path):#如果缓存文件存在，则直接读取
         with open(cache_path, 'rb') as data_f:
             vocabulary_word2index, vocabulary_index2word=pickle.load(data_f)
