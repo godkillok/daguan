@@ -107,7 +107,7 @@ def  prepare():
 
 def pred():
     import  fastText
-    classifier = fastText.load_model('../input/sur_tfidf_more.bin')
+    classifier = fastText.load_model('../input_data/sur_tfidf_more.bin')
     train_result = classifier.test(train_set_path)
     print(train_result)
 
