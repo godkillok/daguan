@@ -16,7 +16,7 @@ def  prepare_data_set():
     train = pd.read_csv('../input_data/train.csv')
     test = pd.read_csv('../input_data/test.csv')
     test_id = test["id"].copy()
-    vec = TfidfVectorizer(ngram_range=(1,1),min_df=0.01, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
+    vec = TfidfVectorizer(ngram_range=(1,1),min_df=3, max_df=0.95,use_idf=1,smooth_idf=1, sublinear_tf=1)
     x_train=train[column]
     x_test=test[column]
     y_train=(train["class"])

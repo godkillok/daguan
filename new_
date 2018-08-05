@@ -1,4 +1,4 @@
-./fasttext supervised -input../input_data/train_tfidf.txt  -pretrainedVectors  ../input_data/w2v.vec -output ../input/sur_tfidf
+./fasttext supervised -input ../input_data/train_tfidf.txt  -pretrainedVectors  ../input_data/w2v.vec -output ../input/sur_tfidf
 
 sed -i "s/__label__ / __label__/g" train_set_tfidf.txt
 
@@ -15,4 +15,4 @@ awk -F ',' '{print $3 }' test_set.csv > ../input_data/test_w
 
 ./fasttext skipgram -input ../input_data/w2v.txt -dim 100 -output ../input_data/w2v
 
-./fasttext supervised -input ../train_set_tfidf.txt -label  __label__ -pretrainedVectors  ../w2v.vec -output ../sur_dfidf
+./fasttext supervised -input ../train_tfidf.txt -label  __label__ -pretrainedVectors  ../w2v.vec -output ../sur_tfidf
