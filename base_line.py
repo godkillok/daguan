@@ -92,6 +92,7 @@ def benchmark(clf):
     clf_descr = str(clf).split('(')[0]
     return clf_descr, score, train_time, test_time
 
+results=[]
 for clf, name in (
         (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
         (Perceptron(n_iter=50), "Perceptron"),
@@ -102,8 +103,9 @@ for clf, name in (
             (svm.LinearSVC(),"LinearSVC")):
     print('=' * 80)
     print(name)
+    print(results.append(benchmark(clf)))
 
-
+print(results)
 n_estimator=100
 
 
