@@ -27,6 +27,7 @@ from sklearn.model_selection import train_test_split
 
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import (RandomTreesEmbedding, RandomForestClassifier,
                               GradientBoostingClassifier)
 from sklearn.preprocessing import OneHotEncoder
@@ -69,6 +70,11 @@ X_train, X_train_test, y_train, y_train_test = train_test_split(X_train,
 
 print('load data complete {}'.format(X_train.shape))
 
+lin_clf = svm.LinearSVC()
+lin_clf.fit(X_train,y_train)
+preds = lin_clf.predict(X_test)
+svm_pred = lin_clf.predict(X_train_test)
+
 def benchmark(clf):
     print('_' * 80)
     print("Training: ")
@@ -99,14 +105,15 @@ def benchmark(clf):
 results=[]
 
 from sklearn.ensemble import VotingClassifier
-voting_clf = VotingClassifier( estimators=[("lr", LogisticRegression(C=4, dual=True)), ("rf", RandomForestClassifier(n_estimators=100)), ("svc", svm.LinearSVC())], voting="soft" )
+voting_clf = VotingClassifier( estimators=[("lr", LogisticRegression(C=4, dual=True)), ("rf", RandomForestClassifier(n_estimators=100)), ("svc", MultinomialNB())], voting="soft" )
 for clf, name in (
-        (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
-        # (Perceptron(n_iter=50), "Perceptron"),
-        # (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
-        # (KNeighborsClassifier(n_neighbors=10), "kNN"),
-        (RandomForestClassifier(n_estimators=100), "Random forest"),
-        (LogisticRegression(C=4, dual=True),"Logistic Regression"),
+        # (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
+        # # (Perceptron(n_iter=50), "Perceptron"),
+        # # (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
+        # # (KNeighborsClassifier(n_neighbors=10), "kNN"),
+        (MultinomialNB(),'MultinomialNB'),
+        (RandomForestClassifier(n_estimators=100,n_jobs=4), "Random forest"),
+        # (LogisticRegression(C=4, dual=True),"Logistic Regression"),
             (svm.LinearSVC(),"LinearSVC"),
         (voting_clf,'voting')
 ):
@@ -128,10 +135,7 @@ n_estimator=100
 #
 # ###svm
 # print('svm ')
-# lin_clf = svm.LinearSVC()
-# lin_clf.fit(X_train,y_train)
-# preds = lin_clf.predict(X_test)
-# svm_pred = lin_clf.predict(X_train_test)
+
 #
 # print(' svm precsion and  recall  and  f1 score as follow:\n')
 # print(classification_report(y_train_test, svm_pred))
