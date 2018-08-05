@@ -12,7 +12,7 @@ with open(dataset_path) as file:
 
 step=65000
 count_line = 0
-while 1:
+with open(out_put, 'a') as f:
     for i in range(0,len(lines),step):
         dataset = []
         label=[]
@@ -66,27 +66,27 @@ while 1:
             # print(len(dataset[i]),len(d_temp))
             dataset_after_tfidf.append(' '.join(d_temp))
 
-        with open(out_put, 'a') as f:
-            if type_!='test':
-                # f.writelines(dataset_after_tfidf[i]+'__label__'+label[i]+'\n')
-                for i in range(len(dataset_after_tfidf)):
-                    count = 0
-                    new_line = []
-                    for t in dataset_after_tfidf[i].split(' '):
-                        if t != '816903' or count < 15:
-                            if t == '816903':
-                                count += 1
-                            if t not in ['520477', '816903', '995362', '920327', '1226448', '1025743', '990423',
-                                         '133940', '1071452', '876555', '323159', '572782', '105283', '166959',
-                                         '235896', '554251', '', '1267351', '1224594', '201789', '824446', '263278']:
-                                new_line.append(t)
-                        else:
-                            # print(count)
-                            count = 0
-                            f.writelines(' '.join(new_line) + ' __label__' + str(label[i]) + '\n')
-                            new_line = []
-                else:
-                    f.writelines(label[i]+','+dataset_after_tfidf[i]  + '\n')
+
+        if type_!='test':
+            # f.writelines(dataset_after_tfidf[i]+'__label__'+label[i]+'\n')
+            for i in range(len(dataset_after_tfidf)):
+                count = 0
+                new_line = []
+                for t in dataset_after_tfidf[i].split(' '):
+                    if t != '816903' or count < 15:
+                        if t == '816903':
+                            count += 1
+                        if t not in ['520477', '816903', '995362', '920327', '1226448', '1025743', '990423',
+                                     '133940', '1071452', '876555', '323159', '572782', '105283', '166959',
+                                     '235896', '554251', '', '1267351', '1224594', '201789', '824446', '263278']:
+                            new_line.append(t)
+                    else:
+                        # print(count)
+                        count = 0
+                        f.writelines(' '.join(new_line) + ' __label__' + str(label[i]) + '\n')
+                        new_line = []
+            else:
+                f.writelines(label[i]+','+dataset_after_tfidf[i]  + '\n')
 
         print('dd')
 
