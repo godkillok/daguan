@@ -11,12 +11,12 @@ with open(dataset_path) as file:
     lines=file.readlines()
 
 step=65000
-
+count = 0
 while 1:
     for i in range(0,len(lines),step):
         dataset = []
         label=[]
-        count = 0
+
         for line in lines:
 
             if i<=count<i+step:
