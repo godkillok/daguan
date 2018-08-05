@@ -4,7 +4,7 @@ from sklearn import svm
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import time
 t1=time.time()
-
+#1
 
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer
