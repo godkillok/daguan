@@ -32,6 +32,7 @@ from sklearn.ensemble import (RandomTreesEmbedding, RandomForestClassifier,
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_curve
+from sklearn.metrics import classification_report
 from sklearn.pipeline import make_pipeline
 # from xgboost.sklearn import XGBClassifier
 
@@ -94,7 +95,7 @@ def benchmark(clf):
 n_estimator=100
 
 
-print('gbdt')
+
 
 ###svm
 print('svm ')
@@ -102,27 +103,33 @@ lin_clf = svm.LinearSVC()
 lin_clf.fit(X_train,y_train)
 preds = lin_clf.predict(X_test)
 svm_pred = lin_clf.predict(X_train_test)
-fpr_rt_svm, tpr_rt_svm, _ = roc_curve(y_train_test, svm_pred)
-print('svm --{}---{}'.format(fpr_rt_svm,tpr_rt_svm))
+
+print(' svm precsion and  recall  and  f1 score as follow:\n')
+print(classification_report(y_train_test, svm_pred))
+svm_pred = lin_clf.predict(X_train)
+print(' svm train as follow:\n')
+print(classification_report(y_train, svm_pred))
+
 
 #lr
+print('lr')
 clf = LogisticRegression(C=4, dual=True)
 clf.fit(X_train, y_train)
 lr_preds=clf.predict_proba(X_train_test)
 lr_preds=np.argmax(lr_preds,axis=1)
-
-fpr_rt_lr, tpr_rt_lr, _ = roc_curve(y_train_test, lr_preds)
-print('lr --{}---{}'.format(fpr_rt_lr,tpr_rt_lr))
+print(' lr precsion and  recall  and  f1 score as follow:\n')
+print(classification_report(y_train_test, lr_preds))
 
 
 ###gbdt
+print('gbdt')
 grd = GradientBoostingClassifier(n_estimators=n_estimator)
 grd_enc = OneHotEncoder()
 grd_lm = LogisticRegression()
 grd.fit(X_train, y_train)
 y_pred_grd = grd.predict_proba(X_test)[:, 1]
-fpr_grd, tpr_grd, _ = roc_curve(y_train_test, y_pred_grd)
-print('gbdt --{}---{}'.format(fpr_grd,tpr_grd))
+print(classification_report(y_train_test, y_pred_grd))
+
 
 ###gbdt+lr
 
@@ -135,8 +142,7 @@ y_pred_grd_lm = grd_lm.predict_proba(
     grd_enc.transform(grd.apply(X_train_test)[:, :, 0]))[:, 1]
 
 
-fpr_rt_lm, tpr_rt_lm, _ = roc_curve(y_train_test, y_pred_grd_lm)
-print('gbdt+lr --{}---{}'.format(fpr_rt_lm,tpr_rt_lm))
+print(classification_report(y_train_test, y_pred_grd_lm))
 
 
 
