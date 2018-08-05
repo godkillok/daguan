@@ -11,22 +11,22 @@ with open(dataset_path) as file:
     lines=file.readlines()
 
 step=65000
-count = 0
+count_line = 0
 while 1:
     for i in range(0,len(lines),step):
         dataset = []
         label=[]
-        print(count,len(lines))
+        print(count_line,len(lines))
         for line in lines:
 
-            if i<=count<i+step:
+            if i<=count_line<i+step:
                 if type_!='test':
                     dataset.append(line.split(',')[1].split(' '))
                     label.append(line.split(',')[2])
                 else:
                     dataset.append(line.split(',')[1].split(' '))
                     label.append(line.split(',')[0])
-            count += 1
+            count_line += 1
 
 
         from gensim.models import TfidfModel
