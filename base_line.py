@@ -102,9 +102,9 @@ from sklearn.ensemble import VotingClassifier
 voting_clf = VotingClassifier( estimators=[("lr", LogisticRegression(C=4, dual=True)), ("rf", RandomForestClassifier(n_estimators=100)), ("svc", svm.LinearSVC())], voting="soft" )
 for clf, name in (
         (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
-        (Perceptron(n_iter=50), "Perceptron"),
-        (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
-        (KNeighborsClassifier(n_neighbors=10), "kNN"),
+        # (Perceptron(n_iter=50), "Perceptron"),
+        # (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
+        # (KNeighborsClassifier(n_neighbors=10), "kNN"),
         (RandomForestClassifier(n_estimators=100), "Random forest"),
         (LogisticRegression(C=4, dual=True),"Logistic Regression"),
             (svm.LinearSVC(),"LinearSVC"),
