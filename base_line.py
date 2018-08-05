@@ -105,12 +105,12 @@ def benchmark(clf):
 results=[]
 
 from sklearn.ensemble import VotingClassifier
-voting_clf = VotingClassifier( estimators=[("lr", LogisticRegression(C=4, dual=True)), ("rf", RandomForestClassifier(n_estimators=100)), ("svc", MultinomialNB())],voting="soft" )
+voting_clf = VotingClassifier( estimators=[("lr", LogisticRegression(C=4, dual=True)),(RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),(Perceptron(n_iter=50), "Perceptron"), ("rf", RandomForestClassifier(n_estimators=100)), ("svc", MultinomialNB())],voting="soft" )
 
 test_pred={}
 test_pred['id']=test_id
 for clf, name in (
-        # (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
+        (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
         # # (Perceptron(n_iter=50), "Perceptron"),
         # # (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
         # # (KNeighborsClassifier(n_neighbors=10), "kNN"),
