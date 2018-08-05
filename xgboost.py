@@ -95,6 +95,7 @@ for clf, name in (
         (xgboost_model, "xgboost_model")):
     print('=' * 80)
     print(name)
+    print(benchmark(clf))
 
 
 n_estimator=100
@@ -193,11 +194,11 @@ n_estimator=100
 
 
 
-
-i=0
-fid0.write("id,class"+"\n")
-for item in preds:
-    fid0.write(str(i)+","+str(item+1)+"\n")
-    i=i+1
-fid0.close()
+#
+# i=0
+# fid0.write("id,class"+"\n")
+# for item in preds:
+#     fid0.write(str(i)+","+str(item+1)+"\n")
+#     i=i+1
+# fid0.close()
 

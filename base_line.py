@@ -203,10 +203,10 @@ n_estimator=100
 
 
 
-i=0
-fid0.write("id,class"+"\n")
-for item in preds:
-    fid0.write(str(i)+","+str(item+1)+"\n")
-    i=i+1
-fid0.close()
+# i=0
+# fid0.write("id,class"+"\n")
+# for item in preds:
+#     fid0.write(str(i)+","+str(item+1)+"\n")
+#     i=i+1
+# fid0.close()
 
