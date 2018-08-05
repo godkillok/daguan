@@ -85,7 +85,8 @@ with open(out_put, 'w') as f:
                         count = 0
                         f.writelines(' '.join(new_line) + ' __label__' + str(label[i]) + '\n')
                         new_line = []
-            else:
+        else:
+            for i in range(len(dataset_after_tfidf)):
                 f.writelines(label[i]+','+dataset_after_tfidf[i]  + '\n')
 
         print('dd')
