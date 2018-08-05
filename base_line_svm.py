@@ -1,7 +1,7 @@
 import pandas as pd, numpy as np
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn import svm
-#1
+#12
 column = "word_seg"
 train = pd.read_csv('../input_data/train.csv')
 test = pd.read_csv('../input_data/test.csv')
