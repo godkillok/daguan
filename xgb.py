@@ -79,7 +79,7 @@ def benchmark(clf):
     train_pred = clf.predict(X_train)
     print(classification_report(y_train, train_pred))
     clf_descr = str(clf).split('(')[0]
-    return clf_descr, score, train_time, test_time
+    return clf_descr, score, train_time, test_time,pred
 
 
 xgb_model = XGBClassifier(learning_rate=0.1,
@@ -91,13 +91,24 @@ xgb_model = XGBClassifier(learning_rate=0.1,
                       colsample_btree=0.8,       # 随机选择80%特征建立决策树
                       objective='multi:softmax', # 指定损失函数
                      scale_pos_weight=1,        # 解决样本个数不平衡的问题
-                      random_state=27            # 随机数
+                      random_state=27,           # 随机数
+n_jobs=5
                       )
-benchmark(xgb_model)
-for clf, name in ((xgb_model, "xgboost_model")):
-    print('=' * 80)
-    print(name)
-    print(benchmark(clf))
+
+test_pred={}
+results=[]
+test_pred['id']=test_id
+clf_descr, score, train_time, test_time, pred = benchmark(xgb_model)
+test_pred['xgb'] = pred
+results.append((clf_descr, score, train_time, test_time))
+print(results)
+test_pred_pd=pd.DataFrame.from_dict(test_pred)
+test_pred_pd.to_csv('../output/xgb.csv',index=False,index_label=False,header=True)
+
+# for clf, name in ((xgb_model, "xgboost_model")):
+#     print('=' * 80)
+#     print(name)
+#     print(benchmark(clf))
 
 
 n_estimator=100
