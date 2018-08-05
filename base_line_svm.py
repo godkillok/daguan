@@ -3,8 +3,8 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn import svm
 
 column = "word_seg"
-train = pd.read_csv('../train.csv')
-test = pd.read_csv('../test.csv')
+train = pd.read_csv('../input_data/train.csv')
+test = pd.read_csv('../input_data/test.csv')
 test_id = test["id"].copy()
 vec = TfidfVectorizer(ngram_range=(1,2),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
 trn_term_doc = vec.fit_transform(train[column])
