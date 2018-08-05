@@ -2,7 +2,7 @@
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import HashingVectorizer
-
+import pandas as pd
 
 type_='test'
 dataset_path='../input_data/{}.csv'.format(type_)
