@@ -85,7 +85,7 @@ with open(out_put,'w') as f:
                     else:
                         # print(count)
                         count = 0
-                        file.writelines(' '.join(new_line) + ' __label__' + label + '\n')
+                        file.writelines(' '.join(new_line) + ' __label__' + str(label[i]) + '\n')
                         new_line = []
             else:
                 f.writelines(label[i]+','+dataset_after_tfidf[i]  + '\n')

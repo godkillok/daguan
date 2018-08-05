@@ -113,7 +113,7 @@ for clf, name in (
         # # (KNeighborsClassifier(n_neighbors=10), "kNN"),
         (MultinomialNB(),'MultinomialNB'),
         (RandomForestClassifier(n_estimators=100,n_jobs=4), "Random forest"),
-        # (LogisticRegression(C=4, dual=True),"Logistic Regression"),
+        (LogisticRegression(C=4, dual=True),"Logistic Regression"),
             (svm.LinearSVC(),"LinearSVC"),
         (voting_clf,'voting')
 ):

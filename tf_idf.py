@@ -34,7 +34,7 @@ def  prepare_data_set():
 
     with open(train_set_path,'w') as f:
         for t in range(len(x_train_clear)):
-            f.writelines(x_train_clear[t]+' __label__'+y_train[t]+'\n')
+            f.writelines(x_train_clear[t]+' __label__'+str(y_train[t])+'\n')
 
 
     with open(test_set_path,'w') as f:
