@@ -6,7 +6,7 @@ from sklearn.feature_extraction.text import HashingVectorizer
 
 type_='train'
 dataset_path='../input_data/{}.csv'.format(type_)
-out_put='../input_data/{}_tfidf_more.csv'.format(type_)
+out_put='../input_data/{}_tfidf_more.txt'.format(type_)
 with open(dataset_path) as file:
     lines=file.readlines()
 
@@ -16,7 +16,7 @@ while 1:
     for i in range(0,len(lines),step):
         dataset = []
         label=[]
-
+        print(count,len(lines))
         for line in lines:
 
             if i<=count<i+step:
