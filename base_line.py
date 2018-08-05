@@ -87,62 +87,74 @@ def benchmark(clf):
     train_pred = clf.predict(X_train_test)
     score = metrics.accuracy_score(y_train_test, train_pred)
     print("accuracy:   %0.3f" % score)
+
+    print(classification_report(y_train, train_pred))
     clf_descr = str(clf).split('(')[0]
     return clf_descr, score, train_time, test_time
 
+for clf, name in (
+        (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
+        (Perceptron(n_iter=50), "Perceptron"),
+        (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
+        (KNeighborsClassifier(n_neighbors=10), "kNN"),
+        (RandomForestClassifier(n_estimators=100), "Random forest"),
+        (LogisticRegression(C=4, dual=True),"Logistic Regression"),
+            (svm.LinearSVC(),"LinearSVC")):
+    print('=' * 80)
+    print(name)
 
 
 n_estimator=100
 
 
-
-
-###svm
-print('svm ')
-lin_clf = svm.LinearSVC()
-lin_clf.fit(X_train,y_train)
-preds = lin_clf.predict(X_test)
-svm_pred = lin_clf.predict(X_train_test)
-
-print(' svm precsion and  recall  and  f1 score as follow:\n')
-print(classification_report(y_train_test, svm_pred))
-svm_pred = lin_clf.predict(X_train)
-print(' svm train as follow:\n')
-print(classification_report(y_train, svm_pred))
-
-
-#lr
-print('lr')
-clf = LogisticRegression(C=4, dual=True)
-clf.fit(X_train, y_train)
-lr_preds=clf.predict_proba(X_train_test)
-lr_preds=np.argmax(lr_preds,axis=1)
-print(' lr precsion and  recall  and  f1 score as follow:\n')
-print(classification_report(y_train_test, lr_preds))
-
-
-###gbdt
-print('gbdt')
-grd = GradientBoostingClassifier(n_estimators=n_estimator)
-grd_enc = OneHotEncoder()
-grd_lm = LogisticRegression()
-grd.fit(X_train, y_train)
-y_pred_grd = grd.predict_proba(X_test)[:, 1]
-print(classification_report(y_train_test, y_pred_grd))
-
-
-###gbdt+lr
-
-print('gbdt +lr ')
-grd_enc.fit(grd.apply(X_train)[:, :, 0])
-grd_lm.fit(grd_enc.transform(grd.apply(X_train)[:, :, 0]), y_train)
-
-
-y_pred_grd_lm = grd_lm.predict_proba(
-    grd_enc.transform(grd.apply(X_train_test)[:, :, 0]))[:, 1]
-
-
-print(classification_report(y_train_test, y_pred_grd_lm))
+#
+#
+# ###svm
+# print('svm ')
+# lin_clf = svm.LinearSVC()
+# lin_clf.fit(X_train,y_train)
+# preds = lin_clf.predict(X_test)
+# svm_pred = lin_clf.predict(X_train_test)
+#
+# print(' svm precsion and  recall  and  f1 score as follow:\n')
+# print(classification_report(y_train_test, svm_pred))
+# svm_pred = lin_clf.predict(X_train)
+# print(' svm train as follow:\n')
+# print(classification_report(y_train, svm_pred))
+#
+#
+# #lr
+# print('lr')
+# clf = LogisticRegression(C=4, dual=True)
+# clf.fit(X_train, y_train)
+# lr_preds=clf.predict_proba(X_train_test)
+# lr_preds=np.argmax(lr_preds,axis=1)
+# print(' lr precsion and  recall  and  f1 score as follow:\n')
+# print(classification_report(y_train_test, lr_preds))
+#
+#
+# ###gbdt
+# print('gbdt')
+# grd = GradientBoostingClassifier(n_estimators=n_estimator)
+# grd_enc = OneHotEncoder()
+# grd_lm = LogisticRegression()
+# grd.fit(X_train, y_train)
+# y_pred_grd = grd.predict_proba(X_test)[:, 1]
+# print(classification_report(y_train_test, y_pred_grd))
+#
+#
+# ###gbdt+lr
+#
+# print('gbdt +lr ')
+# grd_enc.fit(grd.apply(X_train)[:, :, 0])
+# grd_lm.fit(grd_enc.transform(grd.apply(X_train)[:, :, 0]), y_train)
+#
+#
+# y_pred_grd_lm = grd_lm.predict_proba(
+#     grd_enc.transform(grd.apply(X_train_test)[:, :, 0]))[:, 1]
+#
+#
+# print(classification_report(y_train_test, y_pred_grd_lm))
 
 
 
