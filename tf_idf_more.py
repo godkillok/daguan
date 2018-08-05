@@ -135,4 +135,4 @@ def pred():
 
     result_pd.to_csv('../output/result.csv',columns=['id','class'],index=False,index_label=False,header=False)
 
-pred()
+prepare()
