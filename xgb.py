@@ -92,7 +92,7 @@ xgb_model = XGBClassifier(learning_rate=0.1,
                       objective='multi:softmax', # 指定损失函数
                      scale_pos_weight=1,        # 解决样本个数不平衡的问题
                       random_state=27,           # 随机数
-n_jobs=5
+n_jobs=8
                       )
 
 test_pred={}
