@@ -80,7 +80,7 @@ def benchmark(clf):
     return clf_descr, score, train_time, test_time
 
 
-xgboost_model = XGBClassifier(learning_rate=0.1,
+xgb_model = XGBClassifier(learning_rate=0.1,
                       n_estimators=1000,         # 树的个数--1000棵树建立xgboost
                       max_depth=6,               # 树的深度
                        min_child_weight = 1,      # 叶子节点最小权重
@@ -91,9 +91,8 @@ xgboost_model = XGBClassifier(learning_rate=0.1,
                      scale_pos_weight=1,        # 解决样本个数不平衡的问题
                       random_state=27            # 随机数
                       )
-
-for clf, name in (
-        (xgboost_model, "xgboost_model")):
+benchmark(xgb_model)
+for clf, name in ((xgb_model, "xgboost_model")):
     print('=' * 80)
     print(name)
     print(benchmark(clf))
