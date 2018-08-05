@@ -1,0 +1,3 @@
+./fasttext supervised -input ../train_set_tfidf.txt -label  __label__ -pretrainedVectors  ../w2v.vec -output ../sur_dfidf
+
+sed -i "s/__label__ / __label__/g" train_set_tfidf.txt
