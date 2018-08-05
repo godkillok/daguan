@@ -1,3 +1,7 @@
+tf idf 这个是0.74
+tfidf
+
+
 ./fasttext supervised -input ../input_data/train_tfidf.txt  -pretrainedVectors  ../input_data/w2v.vec -output ../input_data/sur_tfidf
 
 ./fasttext supervised -input ../input_data/train_tfidf_more.txt  -pretrainedVectors  ../input_data/w2v.vec -output ../input_data/sur_tfidf_more
