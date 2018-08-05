@@ -85,8 +85,10 @@ def benchmark(clf):
     print("test time:  %0.3fs" % test_time)
     print('X_train_test')
     train_pred = clf.predict(X_train_test)
+    print(classification_report(y_train_test, train_pred))
+
     score = metrics.accuracy_score(y_train_test, train_pred)
-    print("accuracy:   %0.3f" % score)
+    print("accuracy:   {}" .format(score) )
 
     print('X_train')
     train_pred = clf.predict(X_train)
@@ -95,6 +97,9 @@ def benchmark(clf):
     return clf_descr, score, train_time, test_time
 
 results=[]
+
+from sklearn.ensemble import VotingClassifier
+voting_clf = VotingClassifier( estimators=[("lr", LogisticRegression(C=4, dual=True)), ("rf", RandomForestClassifier(n_estimators=100)), ("svc", svm.LinearSVC())], voting="soft" )
 for clf, name in (
         (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
         (Perceptron(n_iter=50), "Perceptron"),
@@ -102,13 +107,21 @@ for clf, name in (
         (KNeighborsClassifier(n_neighbors=10), "kNN"),
         (RandomForestClassifier(n_estimators=100), "Random forest"),
         (LogisticRegression(C=4, dual=True),"Logistic Regression"),
-            (svm.LinearSVC(),"LinearSVC")):
+            (svm.LinearSVC(),"LinearSVC"),
+        (voting_clf,'voting')
+):
     print('=' * 80)
     print(name)
     print(results.append(benchmark(clf)))
 
 print(results)
 n_estimator=100
+
+
+# 投票分类器
+
+# voting_clf.fit( X_train, y_train )
+
 
 
 #
