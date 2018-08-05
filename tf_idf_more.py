@@ -12,7 +12,7 @@ with open(dataset_path) as file:
 
 step=65000
 count_line = 0
-with open(out_put, 'a') as f:
+with open(out_put, 'w') as f:
     for i in range(0,len(lines),step):
         dataset = []
         label=[]
