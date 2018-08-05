@@ -67,6 +67,7 @@ X_train, X_train_test, y_train, y_train_test = train_test_split(X_train,
                                                             y_train,
                                                             test_size=0.1)
 
+print('load data complete {}'.format(X_train.shape))
 
 def benchmark(clf):
     print('_' * 80)
@@ -94,7 +95,7 @@ def benchmark(clf):
 n_estimator=100
 
 
-
+print('gbdt')
 
 ###gbdt
 grd = GradientBoostingClassifier(n_estimators=n_estimator)
@@ -106,6 +107,8 @@ fpr_grd, tpr_grd, _ = roc_curve(y_train_test, y_pred_grd)
 print('gbdt --{}---{}'.format(fpr_grd,tpr_grd))
 
 ###gbdt+lr
+
+print('gbdt +lr ')
 grd_enc.fit(grd.apply(X_train)[:, :, 0])
 grd_lm.fit(grd_enc.transform(grd.apply(X_train_test)[:, :, 0]), y_train_test)
 y_pred_grd_lm = grd_lm.predict_proba(
@@ -114,6 +117,7 @@ fpr_rt_lm, tpr_rt_lm, _ = roc_curve(y_train_test, y_pred_grd_lm)
 print('gbdt+lr --{}---{}'.format(fpr_rt_lm,tpr_rt_lm))
 
 ###svm
+print('svm ')
 lin_clf = svm.LinearSVC()
 lin_clf.fit(X_train,y_train)
 preds = lin_clf.predict(X_test)
