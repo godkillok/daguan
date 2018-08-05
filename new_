@@ -1,5 +1,8 @@
-tf idf 这个是0.74
-tfidf
+tfidf 这个是0.74
+tfidf+ 多些sample这个效果不是很好，都在0.71左右
+
+可以考虑把这几个都一致的item 当作是 训练样本
+
 
 
 ./fasttext supervised -input ../input_data/train_tfidf.txt  -pretrainedVectors  ../input_data/w2v.vec -output ../input_data/sur_tfidf
