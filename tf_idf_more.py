@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import HashingVectorizer
 import pandas as pd
 
-type_='test'
+type_='train'
 dataset_path='../input_data/{}.csv'.format(type_)
 out_put='../input_data/{}_tfidf_more.txt'.format(type_)
 train_set_path='../input_data/{}_tfidf_more.txt'.format('train')
