@@ -26,7 +26,7 @@ while 1:
                 else:
                     dataset.append(line.split(',')[1].split(' '))
                     label.append(line.split(',')[0])
-            count_line += 1
+                count_line += 1
 
 
         from gensim.models import TfidfModel
