@@ -14,9 +14,10 @@ def  prepare():
         lines=file.readlines()
 
     step=65000
-    count_line = 0
+
     with open(out_put, 'w') as f:
         for i in range(0,len(lines),step):
+            count_line = 0
             dataset = []
             label=[]
             print(count_line,len(lines))
@@ -29,7 +30,7 @@ def  prepare():
                     else:
                         dataset.append(line.split(',')[1].split(' '))
                         label.append(line.split(',')[0])
-                    count_line += 1
+                count_line += 1
 
 
             from gensim.models import TfidfModel
