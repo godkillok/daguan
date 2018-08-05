@@ -88,7 +88,7 @@ def benchmark(clf):
     score = metrics.accuracy_score(y_train_test, train_pred)
     print("accuracy:   %0.3f" % score)
 
-    print(classification_report(y_train, train_pred))
+    print(classification_report(y_train_test, train_pred))
     clf_descr = str(clf).split('(')[0]
     return clf_descr, score, train_time, test_time
 
