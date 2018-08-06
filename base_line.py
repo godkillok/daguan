@@ -105,7 +105,7 @@ def benchmark(clf):
 results=[]
 
 from sklearn.ensemble import VotingClassifier
-voting_clf = VotingClassifier( estimators=[('svmsvc', svm.SVC(probability=True)), ("lr", LogisticRegression(C=4, dual=True)),("rf", RandomForestClassifier(n_estimators=20)), ("svc", MultinomialNB())],voting="soft" )
+voting_clf = VotingClassifier( estimators=[('svmsvc', svm.SVC(probability=True)), ("lr", LogisticRegression(C=4, dual=True)),("rf", RandomForestClassifier(n_estimators=20)), ("svc", MultinomialNB())],n_jobs=4,voting="soft" )
 
 test_pred={}
 test_pred['id']=test_id
