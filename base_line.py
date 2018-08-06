@@ -110,7 +110,7 @@ voting_clf = VotingClassifier( estimators=[('svmsvc', svm.SVC(probability=True))
 test_pred={}
 test_pred['id']=test_id
 for clf, name in (
-        (voting_clf, 'voting'),
+        # (voting_clf, 'voting'),
         (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
         (Perceptron(n_iter=50), "Perceptron"),
         # # (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
