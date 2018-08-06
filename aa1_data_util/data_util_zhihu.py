@@ -13,11 +13,11 @@ _GO="_GO"
 _END="_END"
 _PAD="_PAD"
 import  fastText
-def create_voabulary(simple=None,word2vec_model_path=PATH+'out.bin',name_scope=''): #zhihu-word2vec-multilabel.bin-100
+def create_voabulary(simple=None,word2vec_model_path='/home/tom/new_data/sur_dfidf.bin',name_scope=''): #zhihu-word2vec-multilabel.bin-100
     cache_path =PATH+'cache_vocabulary_label_pik/'+ name_scope + "_word_voabulary.pik"
     print("cache_path:",cache_path,"file_exists:",os.path.exists(cache_path))
-    model = fastText.load_model('/home/tom/new_data/sur_dfidf.bin')
-    result = model.
+
+
     if os.path.exists(cache_path):#如果缓存文件存在，则直接读取
         with open(cache_path, 'rb') as data_f:
             vocabulary_word2index, vocabulary_index2word=pickle.load(data_f)
@@ -28,7 +28,8 @@ def create_voabulary(simple=None,word2vec_model_path=PATH+'out.bin',name_scope='
         if simple is not None:
             word2vec_model_path='zhihu-word2vec.bin-100'
         print("create vocabulary. word2vec_model_path:",word2vec_model_path)
-        model=word2vec.load(word2vec_model_path)
+        # model=word2vec.load(word2vec_model_path)
+        model = fastText.load_model(word2vec_model_path)
         vocabulary_word2index['PAD_ID']=0
         vocabulary_index2word[0]='PAD_ID'
         special_index=0
@@ -36,7 +37,8 @@ def create_voabulary(simple=None,word2vec_model_path=PATH+'out.bin',name_scope='
             vocabulary_word2index['EOS']=1 # a special token for biLstTextRelation model. which is used between two sentences.
             vocabulary_index2word[1]='EOS'
             special_index=1
-        for i,vocab in enumerate(model.vocab):
+
+        for i,vocab in enumerate(model.get_words()):
             vocabulary_word2index[vocab]=i+1+special_index
             vocabulary_index2word[i+1+special_index]=vocab
 

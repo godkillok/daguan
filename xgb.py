@@ -83,7 +83,7 @@ def benchmark(clf):
 
 
 xgb_model = XGBClassifier(learning_rate=0.1,
-                      n_estimators=1000,         # 树的个数--1000棵树建立xgboost
+                      n_estimators=500,         # 树的个数--1000棵树建立xgboost
                       max_depth=6,               # 树的深度
                        min_child_weight = 1,      # 叶子节点最小权重
                        gamma=0.,                  # 惩罚项中叶子结点个数前的参数

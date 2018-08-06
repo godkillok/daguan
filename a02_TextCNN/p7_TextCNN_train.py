@@ -17,7 +17,7 @@ import pickle
 
 #configuration
 FLAGS=tf.app.flags.FLAGS
-tf.app.flags.DEFINE_integer("num_classes",5,"number of label")
+tf.app.flags.DEFINE_integer("num_classes",19,"number of label")
 tf.app.flags.DEFINE_float("learning_rate",0.01,"learning rate")
 tf.app.flags.DEFINE_integer("batch_size", 32, "Batch size for training/evaluating.") #批处理的大小 32-->128
 tf.app.flags.DEFINE_integer("decay_steps", 6000, "how many steps before decay learning rate.") #6000批处理的大小 32-->128
@@ -121,7 +121,7 @@ def main(_):
 def assign_pretrained_word_embedding(sess,vocabulary_index2word,vocab_size,textCNN,word2vec_model_path=None):
     print("using pre-trained word emebedding.started.word2vec_model_path:",word2vec_model_path)
     # word2vecc=word2vec.load('word_embedding.txt') #load vocab-vector fiel.word2vecc['w91874']
-    word2vec_model = word2vec.load(word2vec_model_path, kind='bin')
+    word2vec_model = word2vec.load(word2vec_model_path)
     word2vec_dict = {}
     for word, vector in zip(word2vec_model.vocab, word2vec_model.vectors):
         word2vec_dict[word] = vector
