@@ -92,7 +92,7 @@ def create_voabulary_label(voabulary_label=PATH+'mafengwo.txt',name_scope='',use
             vocabulary_index2word_label[indexx]=label
         print("count top10:",countt)
 
-        #save to file system if vocabulary of words is not exists.
+        #save to 1file system 2if vocabulary of words is not exists.
         # if not os.path.exists(cache_path): #如果不存在写到缓存文件中
         with open(cache_path, 'wb+') as data_f:
             pickle.dump((vocabulary_word2index_label,vocabulary_index2word_label), data_f)
