@@ -51,9 +51,7 @@ def main(_):
         train_filename_queue = tf.train.string_input_producer(
             tf.train.match_filenames_once(FLAGS.train_file), num_epochs=FLAGS.num_epochs)
         train_label, train_features = read_and_decode_function(train_filename_queue)
-        trainX, trainY, testX, testY = tf.train_split(train_features,
-                                                                                  train_label,
-                                                                                  frac=.1)
+
         # if FLAGS.multi_label_flag:
         #     FLAGS.traning_data_path='training-data/train-zhihu6-title-desc.txt' #test-zhihu5-only-title-multilabel.txt
         # train, test, _ = load_data_multilabel_new(vocabulary_word2index, vocabulary_word2index_label,multi_label_flag=FLAGS.multi_label_flag) #,traning_data_path=FLAGS.traning_data_path

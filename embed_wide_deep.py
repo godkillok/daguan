@@ -103,7 +103,7 @@ def restore_from_checkpoint(sess, saver, checkpoint):
     saver.restore(sess, checkpoint)
     return True
   else:
-    logging.warn("Checkpoint not found: {}".format(checkpoint))
+    logging.warning("Checkpoint not found: {}".format(checkpoint))
     return False
 
 
