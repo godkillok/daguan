@@ -39,23 +39,26 @@ tf.app.flags.DEFINE_boolean("multi_label_flag",True,"use multi label or single l
 filter_sizes=[1,2,3,4,5] #[1,2,3,4,5,6,7]
 #1.load data(X:list of lint,y:int). 2.create session. 3.feed data. 4.training (5.validation) ,(6.prediction)
 def main(_):
-    #1.load data(X:list of lint,y:int).
-    #if os.path.exists(FLAGS.cache_path):  # 如果文件系统中存在，那么加载故事（词汇表索引化的）
-    #    with open(FLAGS.cache_path, 'r') as data_f:
-    #        trainX, trainY, testX, testY, vocabulary_index2word=pickle.load(data_f)
-    #        vocab_size=len(vocabulary_index2word)
-    #else:
+
     if 1==1:
-        trainX, trainY, testX, testY = None, None, None, None
+        # trainX, trainY, testX, testY = None, None, None, None
         vocabulary_word2index, vocabulary_index2word = create_voabulary(name_scope="cnn2") #simple='simple'
         vocab_size = len(vocabulary_word2index)
         print("cnn_model.vocab_size:",vocab_size)
         vocabulary_word2index_label,vocabulary_index2word_label = create_voabulary_label(name_scope="cnn2")
-        if FLAGS.multi_label_flag:
-            FLAGS.traning_data_path='training-data/train-zhihu6-title-desc.txt' #test-zhihu5-only-title-multilabel.txt
-        train, test, _ = load_data_multilabel_new(vocabulary_word2index, vocabulary_word2index_label,multi_label_flag=FLAGS.multi_label_flag) #,traning_data_path=FLAGS.traning_data_path
-        trainX, trainY = train
-        testX, testY = test
+
+        read_and_decode_function = read_and_decode_tfrecords
+        train_filename_queue = tf.train.string_input_producer(
+            tf.train.match_filenames_once(FLAGS.train_file), num_epochs=FLAGS.num_epochs)
+        train_label, train_features = read_and_decode_function(train_filename_queue)
+        trainX, trainY, testX, testY = tf.train_split(train_features,
+                                                                                  train_label,
+                                                                                  frac=.1)
+        # if FLAGS.multi_label_flag:
+        #     FLAGS.traning_data_path='training-data/train-zhihu6-title-desc.txt' #test-zhihu5-only-title-multilabel.txt
+        # train, test, _ = load_data_multilabel_new(vocabulary_word2index, vocabulary_word2index_label,multi_label_flag=FLAGS.multi_label_flag) #,traning_data_path=FLAGS.traning_data_path
+        # trainX, trainY = train
+        # testX, testY = test
         # 2.Data preprocessing.Sequence padding
         print("start padding & transform to one hot...")
         trainX = pad_sequences(trainX, maxlen=FLAGS.sentence_len, value=0.)  # padding to max length
@@ -66,6 +69,14 @@ def main(_):
         # Converting labels to binary vectors
         print("end padding & transform to one hot...")
     #2.create session.
+
+
+    init_op = [
+        tf.global_variables_initializer(),
+        tf.local_variables_initializer(),
+        tf.tables_initializer()
+    ]
+
     config=tf.ConfigProto()
     config.gpu_options.allow_growth=True
     with tf.Session(config=config) as sess:
@@ -74,6 +85,9 @@ def main(_):
                         FLAGS.decay_rate,FLAGS.sentence_len,vocab_size,FLAGS.embed_size,FLAGS.is_training,multi_label_flag=FLAGS.multi_label_flag)
         #Initialize Save
         saver=tf.train.Saver()
+
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord, sess=sess)
         if os.path.exists(FLAGS.ckpt_dir+"checkpoint"):
             print("Restoring Variables from Checkpoint")
             saver.restore(sess,tf.train.latest_checkpoint(FLAGS.ckpt_dir))
@@ -200,21 +214,29 @@ def calculate_accuracy(labels_predicted, labels,eval_counter):
         count = count + 1
     return count / len(labels)
 
-def build_model_columns2()
+
+def build_model_columns2():
+    """Builds a set of wide and deep feature columns."""
+    # Continuous columns
+
+    education_num = tf.feature_column.numeric_column('education_num')
+    deep_columns = [
+        education_num
+    ]
+    label = tf.feature_column.indicator_column('y_label')
+    return deep_columns, [label]
+
+
 
 def read_and_decode_tfrecords(filename_queue):
     reader = tf.TFRecordReader()
     _, serialized_example = reader.read(filename_queue)
 
-    wide_columns, deep_columns,label_columns = build_model_columns2()
+    deep_columns,label_columns = build_model_columns2()
     # embedding_initializer=tf.contrib.framework.load_embedding_initializer(
     #       ckpt_path='C:/work/tensorflow_template/log/model.ckpt')
 
-    from tensorflow.python import pywrap_tensorflow
-    model_dir = 'C:/work/tensorflow_template/log/model.ckpt'
-    checkpoint_path = model_dir
-    reader = pywrap_tensorflow.NewCheckpointReader(checkpoint_path)
-    aa = reader.get_tensor('embeddings/Variable')
+
 
     examples = tf.parse_single_example(
         serialized_example,
@@ -232,14 +254,12 @@ def read_and_decode_tfrecords(filename_queue):
     #     min_after_dequeue=FLAGS.min_after_dequeue)
     batch_features = tf.train.batch(
         examples,
-        batch_size=FLAGS.batch_size,
+        batch_size=32,
         dynamic_pad=True)
-    item2vec = tf.nn.embedding_lookup_sparse(aa, batch_features['education_num'], None, combiner="sum")
 
-    wide_features = tf.feature_column.input_layer(batch_features, wide_columns)
+
     label = tf.feature_column.input_layer(batch_features, label_columns)
-    deep_features = tf.concat([tf.feature_column.input_layer(batch_features, deep_columns),
-                               item2vec],1)
+    deep_features = [tf.feature_column.input_layer(batch_features, deep_columns)
 
 
     return label, deep_features

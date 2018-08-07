@@ -18,7 +18,7 @@ from tensorflow.python.util import compat
 def define_flags():
     flags = tf.app.flags
     flags.DEFINE_boolean("enable_colored_log", False, "Enable colored log")
-    flags.DEFINE_string("mode", "train", "Support train, inference, savedmodel")
+    flags.DEFINE_string("mode", "inference", "Support train, inference, savedmodel")
     flags.DEFINE_boolean("enable_benchmark", False, "Enable benchmark")
     flags.DEFINE_string("scenario", "classification",
                         "Support classification, regression")
@@ -510,10 +510,9 @@ def main():
 
     BATCH_CAPACITY = FLAGS.batch_thread_number * FLAGS.batch_size + FLAGS.min_after_dequeue
 
-    if FLAGS.train_file_format == "tfrecords":
-        read_and_decode_function = read_and_decode_tfrecords
-    elif FLAGS.train_file_format == "csv":
-        read_and_decode_function = read_and_decode_csv
+
+    read_and_decode_function = read_and_decode_tfrecords2
+
 
     train_filename_queue = tf.train.string_input_producer(
         tf.train.match_filenames_once(FLAGS.train_file), num_epochs=EPOCH_NUMBER)
