@@ -116,7 +116,7 @@ for clf, name in (
         # # (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
         # # (KNeighborsClassifier(n_neighbors=10), "kNN"),
         (MultinomialNB(),'MultinomialNB'),
-        (RandomForestClassifier(n_estimators=50,n_jobs=-1), "Random forest"),
+        # (RandomForestClassifier(n_estimators=50,n_jobs=-1), "Random forest"),
         ( svm.SVC(decision_function_shape='ovo'),'svmsvc'),
         (LogisticRegression(C=4, dual=True,n_jobs=4),"Logistic Regression"),
             (svm.LinearSVC(),"LinearSVC")

@@ -63,8 +63,8 @@ class TextCNN:
     def instantiate_weights(self):
         """define all weights here"""
         with tf.name_scope("embedding"):  # embedding matrix
-            self.Embedding = tf.get_variable("Embedding", shape=[self.vocab_size, self.embed_size],
-                                             initializer=self.initializer)  # [vocab_size,embed_size] tf.random_uniform([self.vocab_size, self.embed_size],-1.0,1.0)
+            # self.Embedding = tf.get_variable("Embedding", shape=[self.vocab_size, self.embed_size],
+            #                                  initializer=self.initializer,trainable=True)  # [vocab_size,embed_size] tf.random_uniform([self.vocab_size, self.embed_size],-1.0,1.0)
             self.W_projection = tf.get_variable("W_projection", shape=[self.num_filters_total, self.num_classes],
                                                 initializer=self.initializer)  # [embed_size,label_size]
             self.b_projection = tf.get_variable("b_projection",

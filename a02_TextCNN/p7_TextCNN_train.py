@@ -200,5 +200,52 @@ def calculate_accuracy(labels_predicted, labels,eval_counter):
         count = count + 1
     return count / len(labels)
 
+def build_model_columns2()
+
+def read_and_decode_tfrecords(filename_queue):
+    reader = tf.TFRecordReader()
+    _, serialized_example = reader.read(filename_queue)
+
+    wide_columns, deep_columns,label_columns = build_model_columns2()
+    # embedding_initializer=tf.contrib.framework.load_embedding_initializer(
+    #       ckpt_path='C:/work/tensorflow_template/log/model.ckpt')
+
+    from tensorflow.python import pywrap_tensorflow
+    model_dir = 'C:/work/tensorflow_template/log/model.ckpt'
+    checkpoint_path = model_dir
+    reader = pywrap_tensorflow.NewCheckpointReader(checkpoint_path)
+    aa = reader.get_tensor('embeddings/Variable')
+
+    examples = tf.parse_single_example(
+        serialized_example,
+        features={
+            "education_num": tf.VarLenFeature(tf.int64)
+        })
+
+
+
+    # batch_features = tf.train.shuffle_batch(
+    #     examples,
+    #     batch_size=FLAGS.batch_size,
+    #     num_threads=FLAGS.batch_thread_number,
+    #     capacity=16,
+    #     min_after_dequeue=FLAGS.min_after_dequeue)
+    batch_features = tf.train.batch(
+        examples,
+        batch_size=FLAGS.batch_size,
+        dynamic_pad=True)
+    item2vec = tf.nn.embedding_lookup_sparse(aa, batch_features['education_num'], None, combiner="sum")
+
+    wide_features = tf.feature_column.input_layer(batch_features, wide_columns)
+    label = tf.feature_column.input_layer(batch_features, label_columns)
+    deep_features = tf.concat([tf.feature_column.input_layer(batch_features, deep_columns),
+                               item2vec],1)
+
+
+    return label, deep_features
+
+
+
+
 if __name__ == "__main__":
     tf.app.run()
