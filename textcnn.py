@@ -14,9 +14,60 @@ from tensorflow.python.saved_model import (
     signature_constants, signature_def_utils, tag_constants, utils)
 from tensorflow.python.util import compat
 import  fastText
-
+import FLAGS
 embed_size=100
 batch_size=32
+EPOCH_NUMBER=2
+
+
+def define_flags():
+    flags = tf.app.flags
+    flags.DEFINE_boolean("enable_colored_log", False, "Enable colored log")
+    flags.DEFINE_string("mode", "inference", "Support train, inference, savedmodel")
+    flags.DEFINE_boolean("enable_benchmark", False, "Enable benchmark")
+    flags.DEFINE_string("scenario", "classification",
+                        "Support classification, regression")
+    flags.DEFINE_integer("feature_size", 9, "Number of feature size")
+    flags.DEFINE_integer("label_size", 2, "Number of label size")
+    flags.DEFINE_string("train_file_format", "tfrecords",
+                        "Support tfrecords, csv")
+    flags.DEFINE_string("train_file", "./data/embeding/wide_deep_test.csv.tfrecords",
+                        "Train files which supports glob pattern")
+    flags.DEFINE_string("validate_file",
+                        "./data/cancer/cancer_test.csv.tfrecords",
+                        "Validate files which supports glob pattern")
+    flags.DEFINE_string("inference_data_file", "./data/embeding/wide_deep_test.csv",
+                        "Data file for inference")
+    flags.DEFINE_string("inference_result_file", "./inference_result.txt",
+                        "Result file from inference")
+    flags.DEFINE_string("optimizer", "adagrad",
+                        "Support sgd, adadelta, adagrad, adam, ftrl, rmsprop")
+    flags.DEFINE_float("learning_rate", 0.01, "Learning rate")
+    flags.DEFINE_string("model", "dnn",
+                        "Support dnn, lr, wide_and_deep, customized, cnn")
+    flags.DEFINE_string("dnn_struct", "128 32 8", "DNN struct")
+    flags.DEFINE_integer("epoch_number", 1, "Number of epoches")
+    flags.DEFINE_integer("batch_size", 3, "Batch size")
+    flags.DEFINE_integer("validate_batch_size", 1024,
+                         "Batch size for validation")
+    flags.DEFINE_integer("batch_thread_number", 1, "Batch thread number")
+    flags.DEFINE_integer("min_after_dequeue", 10, "Min after dequeue")
+    flags.DEFINE_boolean("enable_bn", False, "Enable batch normalization")
+    flags.DEFINE_float("bn_epsilon", 0.001, "Epsilon of batch normalization")
+    flags.DEFINE_boolean("enable_dropout", False, "Enable dropout")
+    flags.DEFINE_float("dropout_keep_prob", 0.5, "Keep prob of dropout")
+    flags.DEFINE_boolean("enable_lr_decay", False, "Enable learning rate decay")
+    flags.DEFINE_float("lr_decay_rate", 0.96, "Learning rate decay rate")
+    flags.DEFINE_integer("steps_to_validate", 10, "Steps to validate")
+    flags.DEFINE_string("checkpoint_path", "./checkpoint/",
+                        "Path for checkpoint")
+    flags.DEFINE_string("output_path", "./tensorboard/", "Path for tensorboard")
+    flags.DEFINE_string("model_path", "./model/", "Path of the model")
+    flags.DEFINE_integer("model_version", 1, "Version of the model")
+    FLAGS = flags.FLAGS
+    return FLAGS
+
+
 def build_model_columns():
     """Builds a set of wide and deep feature columns."""
     text = tf.feature_column.numeric_column('text')
@@ -91,7 +142,10 @@ def read_and_decode_tfrecords(filename_queue):
     deep_features = tf.feature_column.input_layer(batch_features, deep_columns)
     return label, deep_features
 
-def
+def main():
+    train_filename_queue = tf.train.string_input_producer(
+        tf.train.match_filenames_once(FLAGS.train_file), num_epochs=EPOCH_NUMBER)
+    train_label, train_features = read_and_decode_tfrecords(train_filename_queue)
 
 class textCNN():
     def __int__(self):
