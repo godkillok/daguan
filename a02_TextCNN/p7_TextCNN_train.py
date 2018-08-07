@@ -14,7 +14,7 @@ from tflearn.data_utils import to_categorical, pad_sequences
 import os
 import word2vec
 import pickle
-
+import fastText
 #configuration
 FLAGS=tf.app.flags.FLAGS
 tf.app.flags.DEFINE_integer("num_classes",19,"number of label")
@@ -121,9 +121,14 @@ def main(_):
 def assign_pretrained_word_embedding(sess,vocabulary_index2word,vocab_size,textCNN,word2vec_model_path=None):
     print("using pre-trained word emebedding.started.word2vec_model_path:",word2vec_model_path)
     # word2vecc=word2vec.load('word_embedding.txt') #load vocab-vector fiel.word2vecc['w91874']
-    word2vec_model = word2vec.load(word2vec_model_path)
+    # word2vec_model = word2vec.load(word2vec_model_path)
+    word2vec_model = fastText.load_model(word2vec_model_path)
+    vocab=word2vec_model.get_words()
+    vectors=[]
+    for v in vocab:
+        vectors.append(word2vec_model.get_word_vector(v))
     word2vec_dict = {}
-    for word, vector in zip(word2vec_model.vocab, word2vec_model.vectors):
+    for word, vector in zip(vocab, vectors):
         word2vec_dict[word] = vector
     word_embedding_2dlist = [[]] * vocab_size  # create an empty word_embedding list.
     word_embedding_2dlist[0] = np.zeros(FLAGS.embed_size)  # assign empty for first word:'PAD'
