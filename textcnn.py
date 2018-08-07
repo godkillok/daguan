@@ -15,15 +15,14 @@ from tensorflow.python.saved_model import (
 from tensorflow.python.util import compat
 import  fastText
 
-
-def build_model_columns2():
+embed_size=100
+batch_size=32
+def build_model_columns():
     """Builds a set of wide and deep feature columns."""
-    education_num = tf.feature_column.numeric_column('education_num')
+    text = tf.feature_column.numeric_column('text')
 
-    deep_columns = [
-        education_num
-    ]
-    label = tf.feature_column.indicator_column('y_label')
+    deep_columns = [text]
+    label = tf.feature_column.indicator_column('label')
     return  deep_columns, [label]
 
 def assign_pretrained_word_embedding(sess,vocabulary_index2word,vocab_size,textCNN,word2vec_model_path=None):
@@ -39,7 +38,7 @@ def assign_pretrained_word_embedding(sess,vocabulary_index2word,vocab_size,textC
     for word, vector in zip(vocab, vectors):
         word2vec_dict[word] = vector
     word_embedding_2dlist = [[]] * vocab_size  # create an empty word_embedding list.
-    word_embedding_2dlist[0] = np.zeros(FLAGS.embed_size)  # assign empty for first word:'PAD'
+    word_embedding_2dlist[0] = np.zeros(embed_size)  # assign empty for first word:'PAD'
     bound = np.sqrt(6.0) / np.sqrt(vocab_size)  # bound for random variables.
     count_exist = 0;
     count_not_exist = 0
@@ -54,7 +53,7 @@ def assign_pretrained_word_embedding(sess,vocabulary_index2word,vocab_size,textC
             word_embedding_2dlist[i] = embedding;
             count_exist = count_exist + 1  # assign array to this word.
         else:  # no embedding for this word
-            word_embedding_2dlist[i] = np.random.uniform(-bound, bound, FLAGS.embed_size);
+            word_embedding_2dlist[i] = np.random.uniform(-bound, bound, embed_size);
             count_not_exist = count_not_exist + 1  # init a random value for the word.
     word_embedding_final = np.array(word_embedding_2dlist)  # covert to 2d array.
     word_embedding = tf.constant(word_embedding_final, dtype=tf.float32)  # convert to tensor
@@ -67,40 +66,16 @@ def read_and_decode_tfrecords(filename_queue):
     reader = tf.TFRecordReader()
     _, serialized_example = reader.read(filename_queue)
 
-    deep_columns,label_columns = build_model_columns2()
+    deep_columns,label_columns = build_model_columns()
     # embedding_initializer=tf.contrib.framework.load_embedding_initializer(
     #       ckpt_path='C:/work/tensorflow_template/log/model.ckpt')
-
-    from tensorflow.python import pywrap_tensorflow
-    model_dir = 'C:/work/tensorflow_template/log/model.ckpt'
-    checkpoint_path = model_dir
-    reader = pywrap_tensorflow.NewCheckpointReader(checkpoint_path)
-    aa = reader.get_tensor('embeddings/Variable')
 
     examples = tf.parse_single_example(
         serialized_example,
         features={
-            "education_num": tf.VarLenFeature(tf.int64),
-            'workclass': tf.FixedLenFeature([], tf.string),
-            'fnlwgt': tf.FixedLenFeature([], tf.int64),
-            'education': tf.FixedLenFeature([], tf.string),
-
-            'marital_status': tf.FixedLenFeature([], tf.string),
-            'occupation': tf.FixedLenFeature([], tf.string),
-            'relationship': tf.FixedLenFeature([], tf.string),
-            'race': tf.FixedLenFeature([], tf.string),
-            'gender': tf.FixedLenFeature([], tf.string),
-            'capital_gain': tf.FixedLenFeature([], tf.int64),
-            'capital_loss': tf.FixedLenFeature([], tf.int64),
-            'hours_per_week': tf.FixedLenFeature([], tf.int64),
-            'native_country': tf.FixedLenFeature([], tf.string),
-            'age': tf.FixedLenFeature([], tf.int64),
-            'income_bracket': tf.FixedLenFeature([], tf.string)
-
+            "text": tf.VarLenFeature(tf.int64),
+            "label": tf.VarLenFeature(tf.int64)
         })
-
-
-
     # batch_features = tf.train.shuffle_batch(
     #     examples,
     #     batch_size=FLAGS.batch_size,
@@ -109,15 +84,28 @@ def read_and_decode_tfrecords(filename_queue):
     #     min_after_dequeue=FLAGS.min_after_dequeue)
     batch_features = tf.train.batch(
         examples,
-        batch_size=FLAGS.batch_size,
+        batch_size=batch_size,
         dynamic_pad=True)
-    item2vec = tf.nn.embedding_lookup_sparse(aa, batch_features['education_num'], None, combiner="sum")
-
-
+    # item2vec = tf.nn.embedding_lookup_sparse(aa, batch_features['education_num'], None, combiner="sum")
     label = tf.feature_column.input_layer(batch_features, label_columns)
-    deep_features = tf.concat([tf.feature_column.input_layer(batch_features, deep_columns),
-                               item2vec],1)
-
-
+    deep_features = tf.feature_column.input_layer(batch_features, deep_columns)
     return label, deep_features
+
+def
+
+class textCNN():
+    def __int__(self):
+        self.instantiate_weights()
+
+
+    def instantiate_weights(self):
+        """define all weights here"""
+        with tf.name_scope("embedding"):  # embedding matrix
+            self.Embedding = tf.get_variable("Embedding", shape=[self.vocab_size, self.embed_size],
+                                             initializer=self.initializer)  # [vocab_size,embed_size] tf.random_uniform([self.vocab_size, self.embed_size],-1.0,1.0)
+            self.W_projection = tf.get_variable("W_projection", shape=[self.num_filters_total, self.num_classes],
+                                                initializer=self.initializer)  # [embed_size,label_size]
+            self.b_projection = tf.get_variable("b_projection",
+                                                shape=[self.num_classes])  # [label_size] #ADD 2017.06.09
+
 
