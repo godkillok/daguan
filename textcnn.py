@@ -249,6 +249,13 @@ def main():
     logging.info("Use the model: {}, model network: {}".format(
         FLAGS.model, FLAGS.dnn_struct))
 
+    filter_sizes = [1, 2, 3, 4, 5]
+    vocab_size = 100
+    textCN = textCNN(filter_sizes, FLAGS.num_filters, FLAGS.num_classes, FLAGS.learning_rate, FLAGS.batch_size,
+                     FLAGS.decay_steps,
+                     FLAGS.decay_rate, FLAGS.sentence_len, vocab_size, FLAGS.embed_size, FLAGS.is_training)
+
+
     logits = inference(batch_features, input_units, output_units, True)
 
 
@@ -369,10 +376,8 @@ def main():
     with tf.Session() as sess:
         writer = tf.summary.FileWriter(FLAGS.output_path, sess.graph)
         sess.run(init_op)
-        filter_sizes = [1, 2, 3, 4, 5]
-        vocab_size=100
-        textCN=textCNN(filter_sizes,FLAGS.num_filters,FLAGS.num_classes, FLAGS.learning_rate, FLAGS.batch_size, FLAGS.decay_steps,
-                        FLAGS.decay_rate,FLAGS.sentence_len,vocab_size,FLAGS.embed_size,FLAGS.is_training)
+
+
 
         if FLAGS.mode == "train":
             # Restore session and start queue runner
@@ -383,16 +388,18 @@ def main():
 
             try:
                 while not coord.should_stop():
-                    curr_loss, curr_acc, _ = sess.run([textCNN.train_op])
-                    _, step, print_features = sess.run([train_op, global_step, batch_features])
+
+                    _, step, print_features = sess.run([textCN.train_op, textCN.global_step, batch_features])
                     np.set_printoptions(suppress=True)
+                    # curr_loss, curr_acc, _ = sess.run(
+                    #     [textCNN.loss_val, textCNN.accuracy, textCNN.train_op])  # curr_acc--->TextCNN.accuracy
 
                     # Print state while training
                     if step % FLAGS.steps_to_validate == 0:
                         if FLAGS.scenario == "classification":
                             loss_value, train_accuracy_value, train_auc_value, validate_accuracy_value, validate_auc_value, summary_value = sess.run(
                                 [
-                                    loss, train_accuracy, train_auc, validate_accuracy,
+                                    textCN.loss_val, textCN.accuracy, train_auc, validate_accuracy,
                                     validate_auc, summary_op
                                 ])
                             end_time = datetime.datetime.now()
@@ -544,12 +551,12 @@ class textCNN():
         else:
             print("going to use single label loss.");self.loss_val = self.loss()
         self.train_op = self.train()
-        if not self.multi_label_flag:
-            self.predictions = tf.argmax(self.logits, 1, name="predictions")  # shape:[None,]
-            print("self.predictions:", self.predictions)
-            correct_prediction = tf.equal(tf.cast(self.predictions, tf.int32),
-                                          self.input_y)  # tf.argmax(self.logits, 1)-->[batch_size]
-            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy")  # shape=()
+
+        self.predictions = tf.argmax(self.logits, 1, name="predictions")  # shape:[None,]
+        print("self.predictions:", self.predictions)
+        correct_prediction = tf.equal(tf.cast(self.predictions, tf.int32),
+                                      self.input_y)  # tf.argmax(self.logits, 1)-->[batch_size]
+        self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy")  # shape=()
 
     def instantiate_weights(self):
         """define all weights here"""

@@ -26,8 +26,8 @@ class TextCNN:
 
         # add placeholder (X,label)
         self.input_x = tf.placeholder(tf.int32, [None, self.sequence_length], name="input_x")  # X
-        #self.input_y = tf.placeholder(tf.int32, [None,],name="input_y")  # y:[None,num_classes]
-        self.input_y_multilabel = tf.placeholder(tf.float32,[None,self.num_classes], name="input_y_multilabel")  # y:[None,num_classes]. this is for multi-label classification only.
+        self.input_y = tf.placeholder(tf.int32, [None,],name="input_y")  # y:[None,num_classes]
+        # self.input_y_multilabel = tf.placeholder(tf.float32,[None,self.num_classes], name="input_y_multilabel")  # y:[None,num_classes]. this is for multi-label classification only.
         self.dropout_keep_prob=tf.placeholder(tf.float32,name="dropout_keep_prob")
         self.iter = tf.placeholder(tf.int32) #training iteration
         self.tst=tf.placeholder(tf.bool)
@@ -47,11 +47,11 @@ class TextCNN:
         if multi_label_flag:print("going to use multi label loss.");self.loss_val = self.loss_multilabel()
         else:print("going to use single label loss.");self.loss_val = self.loss()
         self.train_op = self.train()
-        if not self.multi_label_flag:
-            self.predictions = tf.argmax(self.logits, 1, name="predictions")  # shape:[None,]
-            print("self.predictions:", self.predictions)
-            correct_prediction = tf.equal(tf.cast(self.predictions,tf.int32), self.input_y) #tf.argmax(self.logits, 1)-->[batch_size]
-            self.accuracy =tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy") # shape=()
+
+        self.predictions = tf.argmax(self.logits, 1, name="predictions")  # shape:[None,]
+        print("self.predictions:", self.predictions)
+        correct_prediction = tf.equal(tf.cast(self.predictions,tf.int32), self.input_y) #tf.argmax(self.logits, 1)-->[batch_size]
+        self.accuracy =tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="Accuracy") # shape=()
 
     def instantiate_weights(self):
         """define all weights here"""
