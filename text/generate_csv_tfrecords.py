@@ -61,7 +61,7 @@ def gete():
     path_vocab = os.path.join('./words.txt')
     vocab = tf.contrib.lookup.index_table_from_file(path_vocab, num_oov_buckets=1)
     tf_lines=[]
-    with open(path_text,'r') as f:
+    with open(path_text,'r',encoding='utf8') as f:
         lines=f.readlines()
         for line in lines:
             tf_lines.append(parse_line(line,vocab))

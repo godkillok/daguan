@@ -165,7 +165,7 @@ def main(unused_argv):
         max_steps=FLAGS.train_steps
     )
     input_fn_for_eval = lambda: input_fn(path_eval, path_words, 0, config["num_oov_buckets"])
-    eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval,steps=600, throttle_secs=30000)
+    eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval,steps=600, throttle_secs=300000)
 
     print("before train and evaluate")
     tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)

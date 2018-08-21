@@ -99,6 +99,7 @@ def assign_pretrained_word_embedding(sess,vocabulary_index2word,vocab_size,textC
     print("using pre-trained word emebedding.started.word2vec_model_path:",word2vec_model_path)
     # word2vecc=word2vec.load('word_embedding.txt') #load vocab-vector fiel.word2vecc['w91874']
     # word2vec_model = word2vec.load(word2vec_model_path)
+    embed_size=100
     word2vec_model = fastText.load_model(word2vec_model_path)
     vocab=word2vec_model.get_words()
     vectors=[]
@@ -256,16 +257,10 @@ def main():
                      FLAGS.decay_rate, FLAGS.sentence_len, vocab_size, FLAGS.embed_size, FLAGS.is_training)
 
 
-    logits = inference(batch_features, input_units, output_units, True)
 
+    # logits = inference(batch_features, input_units, output_units, True)
+    logits=textCN.logits
 
-    batch_labels = tf.to_int64(batch_labels)
-    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-        logits=logits, labels=batch_labels)
-    loss = tf.reduce_mean(cross_entropy, name="loss")
-    l2_lambda = 0.0001
-    l2_losses = tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables() if 'bias' not in v.name]) * l2_lambda
-    loss = loss + l2_losses
 
     global_step = tf.Variable(0, name="global_step", trainable=False)
     if FLAGS.enable_lr_decay:
@@ -359,7 +354,7 @@ def main():
 
     # Initialize saver and summary
     saver = tf.train.Saver()
-    tf.summary.scalar("loss", loss)
+    tf.summary.scalar("loss", textCN.loss_val)
     if FLAGS.scenario == "classification":
         tf.summary.scalar("train_accuracy", train_accuracy)
         tf.summary.scalar("train_auc", train_auc)
@@ -377,15 +372,12 @@ def main():
         writer = tf.summary.FileWriter(FLAGS.output_path, sess.graph)
         sess.run(init_op)
 
-
-
         if FLAGS.mode == "train":
             # Restore session and start queue runner
             restore_from_checkpoint(sess, saver, LATEST_CHECKPOINT)
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(coord=coord, sess=sess)
             start_time = datetime.datetime.now()
-
             try:
                 while not coord.should_stop():
 
@@ -408,11 +400,6 @@ def main():
                                     format(end_time - start_time, step, loss_value,
                                            train_accuracy_value, train_auc_value,
                                            validate_accuracy_value, validate_auc_value))
-                        elif FLAGS.scenario == "regression":
-                            loss_value, summary_value = sess.run([loss, summary_op])
-                            end_time = datetime.datetime.now()
-                            logging.info("[{}] Step: {}, loss: {}".format(
-                                end_time - start_time, step, loss_value))
 
                         writer.add_summary(summary_value, step)
                         saver.save(sess, CHECKPOINT_FILE, global_step=step)
@@ -527,9 +514,9 @@ class textCNN():
 
         # add placeholder (X,label)
         self.input_x = tf.placeholder(tf.int32, [None, self.sequence_length], name="input_x")  # X
-        # self.input_y = tf.placeholder(tf.int32, [None,],name="input_y")  # y:[None,num_classes]
-        self.input_y_multilabel = tf.placeholder(tf.float32, [None, self.num_classes],
-                                                 name="input_y_multilabel")  # y:[None,num_classes]. this is for multi-label classification only.
+        self.input_y = tf.placeholder(tf.int32, [None,],name="input_y")  # y:[None,num_classes]
+        # self.input_y_multilabel = tf.placeholder(tf.float32, [None, self.num_classes],
+        #                                          name="input_y_multilabel")  # y:[None,num_classes]. this is for multi-label classification only.
         self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
         self.iter = tf.placeholder(tf.int32)  # training iteration
         self.tst = tf.placeholder(tf.bool)
@@ -567,5 +554,18 @@ class textCNN():
                                                 initializer=self.initializer)  # [embed_size,label_size]
             self.b_projection = tf.get_variable("b_projection",
                                                 shape=[self.num_classes])  # [label_size] #ADD 2017.06.09
+    def loss(self):
+        batch_labels = tf.to_int64(self.input_y)
+        cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
+            logits=self.logits, labels=batch_labels)
+        loss = tf.reduce_mean(cross_entropy, name="loss")
+        l2_lambda = 0.0001
+        l2_losses = tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables() if 'bias' not in v.name]) * l2_lambda
+        loss = loss + l2_losses
+
+        return loss
+
+
+    def loss(self):
 
 
