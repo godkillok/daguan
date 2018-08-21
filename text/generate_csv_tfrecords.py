@@ -3,12 +3,14 @@
 import tensorflow as tf
 import os
 import csv
-
+import re
+import numpy as np
 # 将数据转化成对应的属性
+sentence_max_len=100
+pad_word='<pad>'
 def feature_auto(value):
-
-  if isinstance(value[0],int):
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
+  if isinstance(value,int):
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 
   elif isinstance(value,str):
@@ -18,6 +20,32 @@ def feature_auto(value):
   elif isinstance(value, float):
     return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
 
+def parse_line(line, vocab):
+    def get_content(record):
+        fields = record.decode().split(",")
+        if len(fields) < 3:
+            raise ValueError("invalid record %s" % record)
+        text = re.sub(r"[^A-Za-z0-9\'\`]", " ", fields[2])
+        text = re.sub(r"\s{2,}", " ", text)
+        text = re.sub(r"\`", "\'", text)
+        text = text.strip().lower()
+        tokens = text.split()
+        tokens = [w.strip("'") for w in tokens if len(w.strip("'")) > 0]
+        n = len(tokens)  # type: int
+        if n > sentence_max_len:
+            tokens = tokens[:sentence_max_len]
+        if n < sentence_max_len:
+            tokens += [pad_word] * (sentence_max_len - n)
+        return [tokens, np.int32(fields[0])]
+
+    result = tf.py_func(get_content, [line], [tf.string, tf.int32])
+    result[0].set_shape([sentence_max_len])
+    result[1].set_shape([])
+    # Lookup tokens to return their ids
+    ids = vocab.lookup(result[0])
+    return {"sentence": ids}, result[1] - 1
+def gete():1
+    vocab = tf.contrib.lookup.index_table_from_file(path_vocab, num_oov_buckets=num_oov_buckets)
 
 def generate_tfrecords(input_filename, output_filename):
   print("Start to convert {} to {}".format(input_filename, output_filename))
@@ -25,29 +53,9 @@ def generate_tfrecords(input_filename, output_filename):
   cout=0
   with open(input_filename, 'r+', newline='') as csv_file:
     reader = csv.reader(csv_file)
-    dic = {}
-    dict_label={}
-    count = 0
-    label_count=0
     for data in reader:
-
       text = str(data[0])
-      label= str(data[1])
-      line=[]
-      for t in text.split(' '):
-        if t not in dic:
-          count += 1
-          dic[t]=count
-        line.append(dic[t])
-      text=line
-      line = []
-      for t in label.split(' '):
-        if t not in dic:
-          label_count += 1
-
-          dict_label[t]=count
-        line.append(dict_label[t])
-      label=line
+      label = str(data[1])
 
       # To show an example of embedding
 
