@@ -44,7 +44,7 @@ def parse_line(line, vocab):
     # Lookup tokens to return their ids
     ids = vocab.lookup(result[0])
     return {"sentence": ids}, result[1] - 1
-def gete():1
+def gete():12
     vocab = tf.contrib.lookup.index_table_from_file(path_vocab, num_oov_buckets=num_oov_buckets)
 
 def generate_tfrecords(input_filename, output_filename):
