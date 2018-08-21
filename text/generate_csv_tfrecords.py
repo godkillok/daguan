@@ -14,10 +14,10 @@ pad_word = '<pad>'
 def feature_auto(value):
     if isinstance(value, int):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
-
+    elif isinstance(value,list):
+        return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
     elif isinstance(value, str):
-
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value.encode()]))
 
     elif isinstance(value, float):
@@ -47,37 +47,44 @@ def parse_line(line, vocab):
     result[1].set_shape([])
     # Lookup tokens to return their ids
     ids = vocab.lookup(result[0])
-    tf.tables_initializer().run()
-    ids.eval()
-    return {"sentence": ids}, result[1] - 1
+
+    sess=tf.Session()
+    with sess.as_default():
+        tf.tables_initializer().run()
+        ge=ids.eval()
+        label=(result[1] - 1).eval()
+    return {"sentence": ge, "label":label}
 
 
 def gete():
-    path_vocab = os.path.join('./text.csv')
+    path_text = os.path.join('./text.csv')
+    path_vocab = os.path.join('./words.txt')
     vocab = tf.contrib.lookup.index_table_from_file(path_vocab, num_oov_buckets=1)
+    tf_lines=[]
+    with open(path_text,'r') as f:
+        lines=f.readlines()
+        for line in lines:
+            tf_lines.append(parse_line(line,vocab))
+    output_filename='./1.tfrecords'
+    generate_tfrecords(tf_lines,output_filename)
 
-
-def generate_tfrecords(input_filename, output_filename):
-    print("Start to convert {} to {}".format(input_filename, output_filename))
+def generate_tfrecords(tf_lines, output_filename):
+    print("Start to convert {} to {}".format(len(tf_lines), output_filename))
     writer = tf.python_io.TFRecordWriter(output_filename)
     cout = 0
-    with open(input_filename, 'r+', newline='') as csv_file:
-        reader = csv.reader(csv_file)
-        for data in reader:
-            text = str(data[0])
-            label = str(data[1])
 
-            # To show an example of embedding
+    for data in tf_lines:
+        text = data.get('sentence')
+        label = data.get('label')
+        example = tf.train.Example(features=tf.train.Features(feature={
+            'text': feature_auto(list(text)),
+            'label': feature_auto(label)
+        }))
+        if cout < 8:
+            writer.write(example.SerializeToString())
 
-            example = tf.train.Example(features=tf.train.Features(feature={
-                'text': feature_auto(text),
-                'label': feature_auto(label)
-            }))
-            if cout < 8:
-                writer.write(example.SerializeToString())
 
-    writer.close()
-    print("Successfully convert {} to {}".format(input_filename,
+    print("Successfully convert {} to {}".format(len(tf_lines),
                                                  output_filename))
 
 
@@ -89,4 +96,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    gete()
