@@ -78,7 +78,7 @@ def generate_tfrecords(tf_lines, output_filename):
         label = data.get('label')
         example = tf.train.Example(features=tf.train.Features(feature={
             'text': feature_auto(list(text)),
-            'label': feature_auto(label)
+            'label': feature_auto(int(label))
         }))
         if cout < 8:
             writer.write(example.SerializeToString())
