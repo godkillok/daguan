@@ -14,8 +14,10 @@ import json
 
 flags = tf.app.flags
 flags.DEFINE_string("model_dir", "./model_dir", "Base directory for the model.")
+flags.DEFINE_string("train_file_pattern", "./model_dir", "train file pattern")
+flags.DEFINE_string("eval_file_pattern", "./model_dir", "evalue file pattern")
 flags.DEFINE_float("dropout_rate", 0.25, "Drop out rate")
-flags.DEFINE_float("learning_rate", 0.001, "Learning rate")
+flags.DEFINE_float("learning_rate", 0.0001, "Learning rate")
 flags.DEFINE_integer("embedding_size", 128, "embedding size")
 flags.DEFINE_integer("num_filters", 100, "number of filters")
 flags.DEFINE_integer("num_classes", 14, "number of classes")
@@ -56,8 +58,37 @@ def parse_line(line, vocab):
     result[1].set_shape([])
     # Lookup tokens to return their ids
     ids = vocab.lookup(result[0])
-    return {"sentence": ids}, result[1] - 1
+    return {"text": ids}, result[1] - 1
 
+
+def parse_exmp(serialized_example):
+    feats = tf.parse_single_example(
+        serialized_example,
+        features={
+            "text": tf.FixedLenFeature([100],tf.int64),
+            # "text": tf.FixedLenSequenceFeature([], tf.int64,allow_missing=True),
+            "label":tf.FixedLenFeature([], tf.int64)
+        })
+
+    labels = feats.pop('label')
+
+    return feats, labels
+
+def train_input_fn(filenames, batch_size, shuffle_buffer_size):
+  # dataset = tf.data.TFRecordDataset(filenames) filename is a string
+
+  files = tf.data.Dataset.list_files(filenames,shuffle=True)
+  dataset = files.apply(
+        tf.contrib.data.parallel_interleave(tf.data.TFRecordDataset, cycle_length=FLAGS.num_parallel_readers))
+  dataset = dataset.map(parse_exmp, num_parallel_calls=10)
+
+  if shuffle_buffer_size > 0:
+    dataset = dataset.shuffle(shuffle_buffer_size)
+  dataset = dataset.repeat().batch(batch_size)
+  print('tfrecord')
+  print(dataset.output_types)
+  print(dataset.output_shapes)
+  return dataset
 
 def input_fn(path_csv, path_vocab, shuffle_buffer_size, num_oov_buckets):
     """Create tf.data Instance from csv file
@@ -82,7 +113,7 @@ def input_fn(path_csv, path_vocab, shuffle_buffer_size, num_oov_buckets):
 
 
 def my_model(features, labels, mode, params):
-    sentence = features['sentence']
+    sentence = features['text']
     # Get word embeddings for each token in the sentence
     embeddings = tf.get_variable(name="embeddings", dtype=tf.float32,
                                  shape=[params["vocab_size"], FLAGS.embedding_size])
@@ -160,12 +191,23 @@ def main(unused_argv):
 
     )
 
+
+
+    # train_spec = tf.estimator.TrainSpec(
+    #     input_fn=lambda: input_fn(path_train, path_words, FLAGS.shuffle_buffer_size, config["num_oov_buckets"]),
+    #     max_steps=FLAGS.train_steps
+    # )
+    train_file='C:/work/daguan/text/1.tfrecords'
+    train_filename_queue = tf.train.string_input_producer(
+        tf.train.match_filenames_once(train_file))
     train_spec = tf.estimator.TrainSpec(
-        input_fn=lambda: input_fn(path_train, path_words, FLAGS.shuffle_buffer_size, config["num_oov_buckets"]),
-        max_steps=FLAGS.train_steps
+        input_fn=lambda: train_input_fn(train_file, 4, 8),
+        max_steps=300
     )
+
+
     input_fn_for_eval = lambda: input_fn(path_eval, path_words, 0, config["num_oov_buckets"])
-    eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval,steps=600, throttle_secs=300000)
+    eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval,steps=1, throttle_secs=30)
 
     print("before train and evaluate")
     tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)

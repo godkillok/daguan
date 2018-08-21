@@ -1,14 +1,19 @@
 #!/usr/bin/env python
-
 import tensorflow as tf
 import os
-import csv
 import re
 import numpy as np
+import random
 
-# 将数据转化成对应的属性
+flags = tf.app.flags
+flags.DEFINE_string("data_dir", "./dbpedia_csv", "Directory containing the dataset")
+flags.DEFINE_string("pad_word", "<pad>", "used for pad sentence")
+flags.DEFINE_string("path_vocab", "/dbpedia_csv/words.txt", "used for word index")
+FLAGS = flags.FLAGS
+
+
 sentence_max_len = 100
-pad_word = '<pad>'
+pad_word = FLAGS.pad_word
 
 
 def feature_auto(value):
@@ -56,23 +61,27 @@ def parse_line(line, vocab):
     return {"sentence": ge, "label":label}
 
 
-def gete():
-    path_text = os.path.join('./text.csv')
-    path_vocab = os.path.join('./words.txt')
+def generate_tfrecords(path_text):
+    path_vocab = os.path.join(FLAGS.path_vocab)
     vocab = tf.contrib.lookup.index_table_from_file(path_vocab, num_oov_buckets=1)
     tf_lines=[]
     with open(path_text,'r',encoding='utf8') as f:
         lines=f.readlines()
         for line in lines:
             tf_lines.append(parse_line(line,vocab))
-    output_filename='./1.tfrecords'
-    generate_tfrecords(tf_lines,output_filename)
+    write_tfrecords(tf_lines,path_text)
 
-def generate_tfrecords(tf_lines, output_filename):
-    print("Start to convert {} to {}".format(len(tf_lines), output_filename))
-    writer = tf.python_io.TFRecordWriter(output_filename)
-    cout = 0
+def write_tfrecords(tf_lines, path_text):
 
+    (root_path,output_filename)=os.path.split(path_text)
+    output_filename=output_filename.split('.')[0]
+    output_file=output_filename+'.tfrecords'
+
+    print("Start to convert {} to {}".format(len(tf_lines), os.path.join(root_path,output_file)))
+
+    writer = tf.python_io.TFRecordWriter(os.path.join(root_path,output_file))
+    count = 0
+    random.shuffle(tf_lines)
     for data in tf_lines:
         text = data.get('sentence')
         label = data.get('label')
@@ -80,21 +89,23 @@ def generate_tfrecords(tf_lines, output_filename):
             'text': feature_auto(list(text)),
             'label': feature_auto(int(label))
         }))
-        if cout < 8:
-            writer.write(example.SerializeToString())
 
+        writer.write(example.SerializeToString())
+        if count%1000==0:
+            output_file=output_filename+'_'+str(count)+'.tfrecords'
+            writer = tf.python_io.TFRecordWriter(os.path.join(root_path, output_file))
 
-    print("Successfully convert {} to {}".format(len(tf_lines),
-                                                 output_filename))
+            print("Start convert to {}".format(output_file))
 
 
 def main():
-    current_path = os.getcwd()
-    for filename in os.listdir(current_path):
-        if filename.startswith("") and filename.endswith(".csv"):
-            generate_tfrecords(filename, filename + ".tfrecords")
+    s3_input=FLAGS.data_dir
+    for root, dirs, files in os.walk(s3_input):
+        for file in files:
+            if file.endswith(".csv"):
+                generate_tfrecords(os.path.join(root, file))
 
 
 if __name__ == "__main__":
-    # main()
-    gete()
+    main()
+
