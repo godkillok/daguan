@@ -14,23 +14,26 @@ import json
 
 flags = tf.app.flags
 flags.DEFINE_string("model_dir", "./model_dir", "Base directory for the model.")
-flags.DEFINE_string("train_file_pattern", "./model_dir", "train file pattern")
-flags.DEFINE_string("eval_file_pattern", "./model_dir", "evalue file pattern")
-flags.DEFINE_float("dropout_rate", 0.25, "Drop out rate")
-flags.DEFINE_float("learning_rate", 0.0001, "Learning rate")
+flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/train*", "train file pattern")
+flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/test*", "evalue file pattern")
+flags.DEFINE_float("dropout_rate", 0.5, "Drop out rate")
+flags.DEFINE_float("learning_rate", 0.02, "Learning rate")
+flags.DEFINE_float("decay_rate", 0.65, "Learning rate")
 flags.DEFINE_integer("embedding_size", 128, "embedding size")
 flags.DEFINE_integer("num_filters", 100, "number of filters")
 flags.DEFINE_integer("num_classes", 14, "number of classes")
-flags.DEFINE_integer("num_parallel_readers", 3, "number of classes")
-flags.DEFINE_integer("shuffle_buffer_size", 1000, "dataset shuffle buffer size")
+flags.DEFINE_integer("num_parallel_readers", 4, "number of classes")
+flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size")
 flags.DEFINE_integer("sentence_max_len", 100, "max length of sentences")
-flags.DEFINE_integer("batch_size", 64, "number of instances in a batch")
+flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 2000,
+flags.DEFINE_integer("train_steps", 25000,
+                     "Number of (global) training steps to perform")
+flags.DEFINE_integer("decay_steps", 10000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("train_epoch", 1,
                      "Number of (global) training steps to perform")
-flags.DEFINE_string("train_dir", " /data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/train*",
+flags.DEFINE_string("data_dir", "/home/tom/new_data/daguan/text/dbpedia_csv/",
                     "Directory containing the dataset")
 flags.DEFINE_string("test_dir", " /data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/test*",
                     "Directory containing the dataset")
@@ -151,7 +154,9 @@ def my_model(features, labels, mode, params):
                                         training=(mode == tf.estimator.ModeKeys.TRAIN))
     logits = tf.layers.dense(h_pool_flat, FLAGS.num_classes, activation=None)
 
-    optimizer = tf.train.AdagradOptimizer(learning_rate=params['learning_rate'])
+    learning_rate = tf.train.exponential_decay(params['learning_rate'], tf.train.get_global_step(), FLAGS.decay_steps,
+                                               FLAGS.decay_rate, staircase=True)
+    optimizer = tf.train.AdagradOptimizer(learning_rate=learning_rate)
 
     def _train_op_fn(loss):
         return optimizer.minimize(loss, global_step=tf.train.get_global_step())
@@ -185,8 +190,8 @@ def main(unused_argv):
 
     # path_train = os.path.join(FLAGS.data_dir, 'train.csv')
     # path_eval = os.path.join(FLAGS.data_dir, 'test.csv')
-    path_train = FLAGS.train_dir
-    path_eval = FLAGS.test_dir
+    path_train = FLAGS.train_file_pattern
+    path_eval = FLAGS.eval_file_pattern
     classifier = tf.estimator.Estimator(
         model_fn=my_model,
         params={
@@ -205,23 +210,27 @@ def main(unused_argv):
     # )
 
     train_spec = tf.estimator.TrainSpec(
-        input_fn=lambda: train_input_fn(path_train, FLAGS.shuffle_buffer_siz),
-        max_steps=300
+        input_fn=lambda: train_input_fn(path_train, FLAGS.shuffle_buffer_size),
+        max_steps=FLAGS.train_steps
     )
 
     # input_fn_for_eval = lambda: input_fn(path_eval, path_words, 0, config["num_oov_buckets"])
     input_fn_for_eval = lambda: train_input_fn(path_eval, 0)
-    eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval, steps=60, throttle_secs=300000)
+    eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval, steps=30, throttle_secs=100)
 
     print("before train and evaluate")
     tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
 
     print("evalue train set")
-    input_fn_for_pred = lambda: train_input_fn(path_train, 0)
-    classifier.evaluate(input_fn=input_fn_for_pred)
+    # input_fn_for_pred = lambda: train_input_fn(path_train, 0)
+    # classifier.evaluate(input_fn=input_fn_for_pred)
+
+    input_fn_for_eval = lambda: train_input_fn(path_train, 0)
+    # eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval, steps=30, throttle_secs=60)
+    # tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
 
     print("evalue test set")
-    classifier.evaluate(input_fn=input_fn_for_eval)
+    classifier.evaluate(input_fn=input_fn_for_eval,steps=30)
     print("after train and evaluate")
 
 
