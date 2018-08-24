@@ -26,7 +26,7 @@ def print_tfrecords(input_filename):
 
 def main():
   current_path = os.getcwd()
-  tfrecords_file_name = "1.tfrecords"
+  tfrecords_file_name = "text.tfrecords"
   input_filename = os.path.join(current_path, tfrecords_file_name)
   print_tfrecords(input_filename)
 
