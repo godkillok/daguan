@@ -82,11 +82,11 @@ def parse_exmp(serialized_example):
     return feats, labels
 
 
-def train_input_fn(filenames, shuffle_buffer_size):
+def train_input_fn(filenames, shuffle_buffer_size,shuffle=True):
     # dataset = tf.data.TFRecordDataset(filenames) filename is a string
     print('tfrecord')
     print(filenames)
-    files = tf.data.Dataset.list_files(filenames, shuffle=True)  # A dataset of all files matching a pattern.
+    files = tf.data.Dataset.list_files(filenames, shuffle=shuffle)  # A dataset of all files matching a pattern.
     dataset = files.apply(
         tf.contrib.data.parallel_interleave(tf.data.TFRecordDataset, cycle_length=FLAGS.num_parallel_readers))
     dataset = dataset.map(parse_exmp, num_parallel_calls=10)
@@ -215,8 +215,8 @@ def main(unused_argv):
     )
 
     # input_fn_for_eval = lambda: input_fn(path_eval, path_words, 0, config["num_oov_buckets"])
-    input_fn_for_eval = lambda: train_input_fn(path_eval, 0)
-    eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval, steps=30, throttle_secs=100)
+    input_fn_for_eval = lambda: train_input_fn(path_eval, 0,shuffle=False)
+    eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval, steps=60, throttle_secs=100)
 
     print("before train and evaluate")
     tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
@@ -230,7 +230,7 @@ def main(unused_argv):
     # tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
 
     print("evalue test set")
-    classifier.evaluate(input_fn=input_fn_for_eval,steps=30)
+    classifier.evaluate(input_fn=input_fn_for_eval,steps=100)
     print("after train and evaluate")
 
 
