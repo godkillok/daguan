@@ -59,18 +59,20 @@ def per_thouds_lines(result_lines,vocab,path_text,count):
     labels=[r[1]-1 for r in result_lines]
     text_tensor=tf.reshape(text, [len(text), -1])
     labels_tensor = tf.reshape(labels, [len(labels), -1])
-    sess = tf.Session()
-    with sess.as_default():
+
+    with tf.Session() as  sess:
         tf.tables_initializer().run()
         ids = vocab.lookup(text_tensor)
         ggtext=ids.eval()
         ggl=labels_tensor.eval()
+        sess.close()
         # for t in text:
         #     ids = vocab.lookup(t)
         #     ge.append(ids.eval())
         # for l in labels:
         #     label.append(l.eval())
     tf_lines=[]
+    print(len(ggtext))
     for (g,l) in zip(ggtext,ggl):
         tf_lines.append([g,l])
     write_tfrecords(tf_lines, path_text,count)
@@ -120,7 +122,7 @@ def main():
     s3_input = FLAGS.data_dir
     for root, dirs, files in os.walk(s3_input):
         for file in files:
-            if file.endswith("n.csv"):
+            if file.endswith("t_shuf.csv"):
                 print('start to process file {}'.format(file))
                 generate_tfrecords(os.path.join(root, file))
 
