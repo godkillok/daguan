@@ -6,26 +6,27 @@ import numpy as np
 import re
 import os
 import json
+from tensorflow.contrib import rnn
 
 # for python 22.x
 # import sys
 # reload(sys)
 # sys.setdefaultencoding("utf-8")
-#model_dir2 is the good one embedding size 128
+# model_dir2 is the good one embedding size 128
 flags = tf.app.flags
 flags.DEFINE_string("model_dir", "./model_dir1", "Base directory for the model.")
 flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/input_data/*train.tfrecords", "train file pattern")
 flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/input_data/*eval.tfrecords", "evalue file pattern")
-flags.DEFINE_float("dropout_rate", 0.5, "Drop out rate")
-flags.DEFINE_float("learning_rate", 0.4, "Learning rate")
-flags.DEFINE_float("decay_rate", 0.5, "Learning rate")
+flags.DEFINE_float("dropout_rate", 0.8, "Drop out rate")
+flags.DEFINE_float("learning_rate", 0.1, "Learning rate")
+flags.DEFINE_float("decay_rate", 0.7, "Learning rate")
 flags.DEFINE_integer("embedding_size", 100, "embedding size")
 flags.DEFINE_integer("num_filters", 100, "number of filters")
 flags.DEFINE_integer("num_classes", 19, "number of classes")
 flags.DEFINE_integer("num_parallel_readers", 4, "number of classes")
 flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size")
 flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
-flags.DEFINE_integer("batch_size", 256, "number of instances in a batch")
+flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
 flags.DEFINE_integer("train_steps", 60000,
                      "Number of (global) training steps to perform")
@@ -58,7 +59,7 @@ def parse_exmp(serialized_example):
     return feats, labels
 
 
-def train_input_fn(filenames, shuffle_buffer_size,shuffle=True):
+def train_input_fn(filenames, shuffle_buffer_size, shuffle=True):
     # dataset = tf.data.TFRecordDataset(filenames) filename is a string
     print('tfrecord')
     print(filenames)
@@ -77,12 +78,12 @@ def train_input_fn(filenames, shuffle_buffer_size,shuffle=True):
 
 
 def assign_pretrained_word_embedding(params):
-    print("using pre-trained word emebedding.started.word2vec_model_path:",FLAGS.fast_text)
+    print("using pre-trained word emebedding.started.word2vec_model_path:", FLAGS.fast_text)
     import fastText as ft
     word2vec_model = ft.load_model(FLAGS.fast_text)
 
-    vocab_size=params["vocab_size"]
-    word_embedding_final = np.zeros((vocab_size,FLAGS.embedding_size))  # create an empty word_embedding list.
+    vocab_size = params["vocab_size"]
+    word_embedding_final = np.zeros((vocab_size, FLAGS.embedding_size))  # create an empty word_embedding list.
 
     bound = np.sqrt(6.0) / np.sqrt(vocab_size)  # bound for random variables.
     count_exist = 0;
@@ -92,16 +93,18 @@ def assign_pretrained_word_embedding(params):
         lines = f.readlines()
         vocab = {l.strip(): i for i, l in enumerate(lines)}
 
-    for (word,idx) in vocab.items():
-        embedding=word2vec_model.get_word_vector(word)
+    for (word, idx) in vocab.items():
+        embedding = word2vec_model.get_word_vector(word)
+        if embedding.max() == 'not a numeric object' or embedding.min() == 'not a numeric object':
+            print('gg')
         if embedding is not None:  # the 'word' exist a embedding
-            word_embedding_final[idx,:] = embedding
+            word_embedding_final[idx, :] = embedding
             count_exist = count_exist + 1  # assign array to this word.
         else:  # no embedding for this word
             word_embedding_final[idx, :] = np.random.uniform(-bound, bound, FLAGS.embed_size);
             count_not_exist = count_not_exist + 1  # init a random value for the word.
 
-    # word_embedding = tf.constant(word_embedding_final, dtype=tf.float32)  # convert to tensor
+    word_embedding = tf.constant(word_embedding_final, dtype=tf.float32)  # convert to tensor
 
     print("word. exists embedding:", count_exist, " ;word not exist embedding:", count_not_exist)
     print("using pre-trained word emebedding.ended...")
@@ -113,76 +116,44 @@ def my_model(features, labels, mode, params):
     sentence = features['text']
     # Get word embeddings for each token in the sentence
 
-    assert (params["vocab_size"], FLAGS.embedding_size)==params["word_embedding"].shape
-    embeddings = tf.get_variable(name="embeddings", dtype=tf.float32,shape=[params["vocab_size"], FLAGS.embedding_size],
+    assert (params["vocab_size"], FLAGS.embedding_size) == params["word_embedding"].shape
+    embeddings = tf.get_variable(name="embeddings", dtype=tf.float32,
+                                 shape=[params["vocab_size"], FLAGS.embedding_size],
                                  initializer=tf.constant_initializer(params["word_embedding"], dtype=tf.float32))
-
+    hidden_size=FLAGS.embedding_size
     sentence = tf.nn.embedding_lookup(embeddings, sentence)  # shape:(batch, sentence_len, embedding_size)
     # add a channel dim, required by the conv2d and max_pooling2d method
-    sentence = tf.expand_dims(sentence, -1)  # shape:(batch, sentence_len/height, embedding_size/width, channels=1)
+    # sentence = tf.expand_dims(sentence, -1)  # shape:(batch, sentence_len/height, embedding_size/width, channels=1)
     # sentence = tf.layers.batch_normalization(sentence, training=(mode == tf.estimator.ModeKeys.TRAIN))
     pooled_outputs = []
-    for filter_size in params["filter_sizes"]:
 
-        conv = tf.layers.conv2d(
-            sentence,
-            filters=FLAGS.num_filters,
-            kernel_size=[filter_size, FLAGS.embedding_size],
-            strides=(1, 1),
-            padding="VALID"
-        )#activation=tf.nn.relu
-        conv = tf.layers.batch_normalization(conv, training=(mode == tf.estimator.ModeKeys.TRAIN))
-        conv=tf.nn.relu(conv)
-        # b = tf.get_variable("b-%s" % filter_size, [FLAGS.num_filters])  # ADD 2017-06-09
-        if 'dropout_rate' in params and params['dropout_rate'] > 0.0:
-            # h_pool_flat = tf.layers.batch_normalization(h_pool_flat, training=(mode == tf.estimator.ModeKeys.TRAIN))
-
-            conv = tf.layers.dropout(conv, params['dropout_rate'],
-                                            training=(mode == tf.estimator.ModeKeys.TRAIN))
-        # conv1 = tf.layers.batch_normalization(conv, training=(mode == tf.estimator.ModeKeys.TRAIN))
-        # h = tf.nn.relu(conv1)
-        pool = tf.layers.max_pooling2d(
-            conv,
-            pool_size=[FLAGS.sentence_max_len - filter_size + 1, 1],
-            strides=(1, 1),
-            padding="VALID")
-        pooled_outputs.append(pool)
-
-    h_pool = tf.concat(pooled_outputs, 3)  # shape: (batch, 1, len(filter_size) * embedding_size, 1)
-    h_pool_flat = tf.reshape(h_pool, [-1, FLAGS.num_filters * len(
-        params["filter_sizes"])])  # shape: (batch, len(filter_size) * embedding_size)
+    lstm_fw_cell=tf.nn.rnn_cell.BasicLSTMCell(hidden_size) #forward direction cell
+    lstm_bw_cell=tf.nn.rnn_cell.BasicLSTMCell(hidden_size) #backward direction cell
     if 'dropout_rate' in params and params['dropout_rate'] > 0.0:
-        # h_pool_flat = tf.layers.batch_normalization(h_pool_flat, training=(mode == tf.estimator.ModeKeys.TRAIN))
+        lstm_fw_cell=tf.nn.rnn_cell.DropoutWrapper(lstm_fw_cell,output_keep_prob=params['dropout_rate'])
+        lstm_bw_cell=tf.nn.rnn_cell.DropoutWrapper(lstm_bw_cell,output_keep_prob=params['dropout_rate'])
 
-        h_pool_flat = tf.layers.dropout(h_pool_flat, params['dropout_rate'],
-                                        training=(mode == tf.estimator.ModeKeys.TRAIN))
-    h_pool_flat = tf.layers.batch_normalization(h_pool_flat, training=(mode == tf.estimator.ModeKeys.TRAIN))
+    outputs, _ = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, sentence,
+                                                 dtype=tf.float32)  # [batch_size,sequence_length,hidden_size] #creates a dynamic bidirectional recurrent neural network
+    print("outputs:===>",outputs)  # outputs:(<tf.Tensor 'bidirectional_rnn/fw/fw/transpose:0' shape=(?, 5, 100) dtype=float32>, <tf.Tensor 'ReverseV2:0' shape=(?, 5, 100) dtype=float32>))
+    # 3. concat output
+    output_rnn = tf.concat(outputs, axis=2)  # [batch_size,sequence_length,hidden_size*2]
+    output_rnn_last = tf.reduce_mean(output_rnn, axis=1)  # [batch_size,hidden_size*2] #output_rnn_last=output_rnn[:,-1,:] ##[batch_size,hidden_size*2] #TODO
+    print("output_rnn_last:", output_rnn_last)  # <tf.Tensor 'strided_slice:0' shape=(?, 200) dtype=float32>
+    # 4. logits(use linear layer)
 
-    logits = tf.layers.dense(h_pool_flat, FLAGS.num_classes, activation=None)
+
+    logits = tf.layers.dense(output_rnn_last, FLAGS.num_classes, activation=None)
 
     # learning_rate = tf.train.exponential_decay(params['learning_rate'], tf.train.get_global_step(), FLAGS.decay_steps,
     #                                            FLAGS.decay_rate, staircase=True)
-    learning_rate=params['learning_rate']
+    learning_rate = params['learning_rate']
     optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate)
 
     def _train_op_fn(loss):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
             return optimizer.minimize(loss, global_step=tf.train.get_global_step())
-
-    # def loss_fn_(labels, logits):  # 0.001
-    #     l2_lambda = 0.0001
-    #     with tf.name_scope("loss"):
-    #         # input: `logits`:[batch_size, num_classes], and `labels`:[batch_size]
-    #         # output: A 1-D `Tensor` of length `batch_size` of the same type as `logits` with the softmax cross entropy loss.
-    #         losses = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels,
-    #                                                                 logits=logits);  # sigmoid_cross_entropy_with_logits.#losses=tf.nn.softmax_cross_entropy_with_logits(labels=self.input_y,logits=self.logits)
-    #         # print("1.sparse_softmax_cross_entropy_with_logits.losses:",losses) # shape=(?,)
-    #         loss = tf.reduce_mean(losses)  # print("2.loss.loss:", loss) #shape=()
-    #         l2_losses = tf.add_n(
-    #             [tf.nn.l2_loss(v) for v in tf.trainable_variables() if 'bias' not in v.name]) * l2_lambda
-    #         loss = loss + l2_losses
-    #     return loss
 
     my_head = tf.contrib.estimator.multi_class_head(n_classes=FLAGS.num_classes)
     return my_head.create_estimator_spec(
@@ -192,55 +163,6 @@ def my_model(features, labels, mode, params):
         logits=logits,
         train_op_fn=_train_op_fn
     )
-
-
-
-
-def my_head():
-
-    with tf.variable_scope('ctr_model'):
-        ctr_logits = build_mode(features, mode, params)
-    with tf.variable_scope('cvr_model'):
-        cvr_logits = build_mode(features, mode, params)
-
-    ctr_predictions = tf.sigmoid(ctr_logits, name="CTR")
-    cvr_predictions = tf.sigmoid(cvr_logits, name="CVR")
-    prop = tf.multiply(ctr_predictions, cvr_predictions, name="CTCVR")
-    if mode == tf.estimator.ModeKeys.PREDICT:
-        predictions = {
-            'probabilities': prop,
-            'ctr_probabilities': ctr_predictions,
-            'cvr_probabilities': cvr_predictions
-        }
-        export_outputs = {
-            'prediction': tf.estimator.export.PredictOutput(predictions)
-        }
-        return tf.estimator.EstimatorSpec(mode, predictions=predictions, export_outputs=export_outputs)
-
-    y = labels['cvr']
-    cvr_loss = tf.reduce_sum(tf.keras.backend.binary_crossentropy(y, prop), name="cvr_loss")
-    ctr_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(labels=labels['ctr'], logits=ctr_logits),
-                             name="ctr_loss")
-    loss = tf.add(ctr_loss, cvr_loss, name="ctcvr_loss")
-
-    ctr_accuracy = tf.metrics.accuracy(labels=labels['ctr'],
-                                       predictions=tf.to_float(tf.greater_equal(ctr_predictions, 0.5)))
-    cvr_accuracy = tf.metrics.accuracy(labels=y, predictions=tf.to_float(tf.greater_equal(prop, 0.5)))
-    ctr_auc = tf.metrics.auc(labels['ctr'], ctr_predictions)
-    cvr_auc = tf.metrics.auc(y, prop)
-    metrics = {'cvr_accuracy': cvr_accuracy, 'ctr_accuracy': ctr_accuracy, 'ctr_auc': ctr_auc, 'cvr_auc': cvr_auc}
-    tf.summary.scalar('ctr_accuracy', ctr_accuracy[1])
-    tf.summary.scalar('cvr_accuracy', cvr_accuracy[1])
-    tf.summary.scalar('ctr_auc', ctr_auc[1])
-    tf.summary.scalar('cvr_auc', cvr_auc[1])
-    if mode == tf.estimator.ModeKeys.EVAL:
-        return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
-
-    # Create training op.
-    assert mode == tf.estimator.ModeKeys.TRAIN
-    optimizer = tf.train.AdagradOptimizer(learning_rate=params['learning_rate'])
-    train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
-    return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_op)
 
 
 def main(unused_argv):
@@ -261,14 +183,14 @@ def main(unused_argv):
     # path_eval = os.path.join(FLAGS.data_dir, 'test.csv')
     path_train = FLAGS.train_file_pattern
     path_eval = FLAGS.eval_file_pattern
-    params={
+    params = {
         'vocab_size': config["vocab_size"],
         'filter_sizes': list(map(int, FLAGS.filter_sizes.split(','))),
         'learning_rate': FLAGS.learning_rate,
         'dropout_rate': FLAGS.dropout_rate
     }
     word_embedding = assign_pretrained_word_embedding(params)
-    params['word_embedding']=word_embedding
+    params['word_embedding'] = word_embedding
     classifier = tf.estimator.Estimator(
         model_fn=my_model,
         params=params,
@@ -287,7 +209,7 @@ def main(unused_argv):
     )
 
     # input_fn_for_eval = lambda: input_fn(path_eval, path_words, 0, config["num_oov_buckets"])
-    input_fn_for_eval = lambda: train_input_fn(path_eval, 0,shuffle=False)
+    input_fn_for_eval = lambda: train_input_fn(path_eval, 0, shuffle=False)
     eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval, steps=60, throttle_secs=100)
 
     print("before train and evaluate")
@@ -295,14 +217,14 @@ def main(unused_argv):
 
     print("evalue train set")
     input_fn_for_pred = lambda: train_input_fn(path_train, 0)
-    classifier.evaluate(input_fn=input_fn_for_pred,steps=120)
+    classifier.evaluate(input_fn=input_fn_for_pred, steps=120)
 
     input_fn_for_eval = lambda: train_input_fn(path_eval, 0)
     # eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval, steps=30, throttle_secs=60)
     # tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
 
     print("evalue eval set")
-    classifier.evaluate(input_fn=input_fn_for_eval,steps=100)
+    classifier.evaluate(input_fn=input_fn_for_eval, steps=100)
     print("after train and evaluate")
 
 

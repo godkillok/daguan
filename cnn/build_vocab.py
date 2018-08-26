@@ -39,7 +39,7 @@ def save_dict_to_json(d, json_path):
         json.dump(d, f, indent=4)
 
 
-def update_vocab(txt_path, vocab):
+def update_vocab(txt_path, vocab,word_lenth):
     """Update word and tag vocabulary from dataset
     Args:
         txt_path: (string) path to file, one sentence per line
@@ -55,6 +55,7 @@ def update_vocab(txt_path, vocab):
             tokens = text.split(' ')
             tokens = [w.strip("'") for w in tokens if len(w.strip("'")) > 0]
             vocab.update(tokens)
+            word_lenth.append(len(tokens))
     return i + 1
 
 
@@ -64,10 +65,14 @@ if __name__ == '__main__':
     # Build word vocab with train and test datasets
     print("Building word vocabulary...")
     words = Counter()
-
-    size_train_sentences = update_vocab(os.path.join(args.data_dir, 'train_shuf.csv'), words)
-    size_test_sentences = update_vocab(os.path.join(args.data_dir, 'test.csv'), words)
+    word_lenth=[]
+    size_train_sentences = update_vocab(os.path.join(args.data_dir, 'train_shuf.csv'), words,word_lenth)
+    size_test_sentences = update_vocab(os.path.join(args.data_dir, 'test.csv'), words,word_lenth)
     print("- done.")
+    word_lenth_count=Counter(word_lenth)
+    for i in word_lenth_count.items():
+        print(i)
+
     print('most common 100 {}'.format(words.most_common(100)))
     print('before remove {}'.format(len(words.keys())))
     # Only keep most frequent tokens

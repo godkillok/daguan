@@ -11,7 +11,7 @@ flags.DEFINE_string("pad_word", "0", "used for pad sentence")
 flags.DEFINE_string("path_vocab", "/home/tom/new_data/input_data/words.txt", "used for word index")
 FLAGS = flags.FLAGS
 
-sentence_max_len = 100
+sentence_max_len = 250
 pad_word = FLAGS.pad_word
 
 label_class=[]
@@ -53,11 +53,21 @@ def per_thouds_lines_dict(result_lines, vocab, path_text, count,flag_name):
         text = [vocab.get(r) for r in rl[0] if vocab.get(r, '-99')!='-99' ]
         label = rl[1]
         n = len(text)
-        if n > sentence_max_len:
-            text = text[:sentence_max_len]
-        if n < sentence_max_len:
-            text += [0] * (sentence_max_len - n)
-        tf_lines.append([text, label])
+        for i in range(0, len(text), sentence_max_len):
+            text2 = text[i:i+sentence_max_len]
+            if len(text2) > sentence_max_len:
+                text2 = text2[0: sentence_max_len]
+                if len(text2)!=sentence_max_len:
+                    raise Exception("error {}".format(len(text2)))
+                tf_lines.append([text2, label])
+            elif len(text2) < sentence_max_len:
+                if len(text2) > sentence_max_len*0.4:
+                    text2 += [0] * (sentence_max_len - len(text2))
+                    if len(text2) != sentence_max_len:
+                        raise Exception("error")
+                    tf_lines.append([text2, label])
+            elif len(text2)== sentence_max_len:
+                tf_lines.append([text2, label])
 
     write_tfrecords(tf_lines, path_text, count,flag_name)
 
@@ -125,6 +135,8 @@ def main():
                 print('start to process file {}'.format(file))
                 generate_tf_dic(os.path.join(root, file))
     print(set(label_class))
+    os.system('cd {}'.format(s3_input))
+    os.system('find . -name "*" -type f -size 0c | xargs -n 1 rm -f')
 
 
 if __name__ == "__main__":

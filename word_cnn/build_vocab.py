@@ -11,14 +11,11 @@ parser.add_argument('--data_dir', default='./dbpedia_csv', help="Directory conta
 
 # Hyper parameters for the vocab
 NUM_OOV_BUCKETS = 1 # number of buckets (= number of ids) for unknown words
-PAD_WORD = '<pad>'
+PAD_WORD = '0'
 
 
 def clean_str(text):
-    text = re.sub(r"[^A-Za-z0-9\'\`]", " ", text)
-    text = re.sub(r"\s{2,}", " ", text)
-    text = re.sub(r"\`", "\'", text)
-    text = text.strip().lower()
+    text = text.strip()
     return text
 
 def save_vocab_to_txt_file(vocab, txt_path):

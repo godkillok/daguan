@@ -12,19 +12,19 @@ import json
 #sys.setdefaultencoding("utf-8")
 
 flags = tf.app.flags
-flags.DEFINE_string("model_dir", "./model_dir", "Base directory for the model.")
+flags.DEFINE_string("model_dir", "./model_dir2", "Base directory for the model.")
 flags.DEFINE_float("dropout_rate", 0.25, "Drop out rate")
 flags.DEFINE_float("learning_rate", 0.001, "Learning rate")
 flags.DEFINE_integer("embedding_size", 128, "embedding size")
 flags.DEFINE_integer("num_filters", 100, "number of filters")
 flags.DEFINE_integer("num_classes", 14, "number of classes")
-flags.DEFINE_integer("shuffle_buffer_size", 1000000, "dataset shuffle buffer size")
+flags.DEFINE_integer("shuffle_buffer_size", 20000, "dataset shuffle buffer size")
 flags.DEFINE_integer("sentence_max_len", 100, "max length of sentences")
 flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 5000, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 10000,
+flags.DEFINE_integer("train_steps", 20000,
                      "Number of (global) training steps to perform")
-flags.DEFINE_string("data_dir", "./dbpedia_csv", "Directory containing the dataset")
+flags.DEFINE_string("data_dir", "/home/tom/new_data/daguan/text/dbpedia_csv/", "Directory containing the dataset")
 flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated list of number of window size in each filter")
 flags.DEFINE_string("pad_word", "<pad>", "used for pad sentence")
 FLAGS = flags.FLAGS
@@ -154,7 +154,7 @@ def main(unused_argv):
     input_fn=lambda: input_fn(path_train, path_words, FLAGS.shuffle_buffer_size, config["num_oov_buckets"]),
     max_steps=FLAGS.train_steps
   )
-  input_fn_for_eval = lambda: input_fn(path_train, path_words, 0, config["num_oov_buckets"])
+  input_fn_for_eval = lambda: input_fn(path_eval, path_words, 0, config["num_oov_buckets"])
   eval_spec = tf.estimator.EvalSpec(input_fn=input_fn_for_eval, throttle_secs=300)
 
   print("before train and evaluate")

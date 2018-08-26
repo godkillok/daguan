@@ -22,6 +22,7 @@ awk -F ',' '{print  $3}' train_set.csv > ../input_data/train_w
 awk -F ',' '{print $3 }' test_set.csv > ../input_data/test_w
 
 
+
 ./fasttext skipgram -input ../input_data/w2v.txt -dim 100 -output ../input_data/w2v
 
 ./fasttext supervised -input ../train_tfidf.txt -label  __label__ -pretrainedVectors  ../w2v.vec -output ../sur_tfidf
