@@ -25,7 +25,7 @@ def kaggle_bag(glob_files, loc_outfile, method="average", weights="uniform"):
             weight_list[i] = weight_list[i]*int(weight.group(2))
          else:
             print("Using weight: 1")
-      # sort glob_file by first column, ignoring the first line
+      # sort glob_file by first column, ignoring the first line1
       lines = open(glob_file).readlines()
       lines = [lines[0]] + sorted(lines[1:])
       for e, line in enumerate( lines ):
