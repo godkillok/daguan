@@ -38,6 +38,7 @@ from xgboost.sklearn import XGBClassifier
 
 import pandas as pd
 import numpy as np
+from sklearn.externals import joblib
 column = "word_seg"
 train = pd.read_csv('../input_data/train.csv')
 test = pd.read_csv('../input_data/test.csv')
@@ -79,6 +80,7 @@ def benchmark(clf):
     train_pred = clf.predict(X_train)
     print(classification_report(y_train, train_pred))
     clf_descr = str(clf).split('(')[0]
+    joblib.dump(clf, '../output/xgb.model')
     return clf_descr, score, train_time, test_time,pred
 
 
