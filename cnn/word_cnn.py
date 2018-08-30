@@ -13,21 +13,21 @@ import json
 # sys.setdefaultencoding("utf-8")
 #model_dir2 is the good one embedding size 128
 flags = tf.app.flags
-flags.DEFINE_string("model_dir", "./model_dir1", "Base directory for the model.")
-flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/input_data/*train.tfrecords", "train file pattern")
+flags.DEFINE_string("model_dir", "/media/tom/文档/model_dir3", "Base directory for the model.")
+flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/input_data/*shutrain.tfrecords", "train file pattern")
 flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/input_data/*eval.tfrecords", "evalue file pattern")
 flags.DEFINE_float("dropout_rate", 0.5, "Drop out rate")
 flags.DEFINE_float("learning_rate", 0.4, "Learning rate")
-flags.DEFINE_float("decay_rate", 0.5, "Learning rate")
+flags.DEFINE_float("decay_rate", 0.8, "Learning rate")
 flags.DEFINE_integer("embedding_size", 100, "embedding size")
-flags.DEFINE_integer("num_filters", 100, "number of filters")
+flags.DEFINE_integer("num_filters", 120, "number of filters")
 flags.DEFINE_integer("num_classes", 19, "number of classes")
 flags.DEFINE_integer("num_parallel_readers", 4, "number of classes")
 flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size")
 flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
-flags.DEFINE_integer("batch_size", 256, "number of instances in a batch")
+flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 60000,
+flags.DEFINE_integer("train_steps", 40000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("decay_steps", 5000,
                      "Number of (global) training steps to perform")
@@ -37,7 +37,7 @@ flags.DEFINE_string("data_dir", "/home/tom/new_data/input_data/",
                     "Directory containing the dataset")
 flags.DEFINE_string("test_dir", " /data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/test*",
                     "Directory containing the dataset")
-flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated list of number of window size in each filter")
+flags.DEFINE_string("filter_sizes", "2,3,4,5", "Comma-separated list of number of window size in each filter")
 flags.DEFINE_string("pad_word", "<pad>", "used for pad sentence")
 flags.DEFINE_string("path_vocab", "/home/tom/new_data/input_data/words.txt", "used for word index")
 flags.DEFINE_string("fast_text", "/home/tom/new_data/super.bin", "used for word index")
@@ -58,7 +58,7 @@ def parse_exmp(serialized_example):
     return feats, labels
 
 
-def train_input_fn(filenames, shuffle_buffer_size,shuffle=True):
+def train_input_fn(filenames, shuffle_buffer_size,shuffle=True,repeat=0):
     # dataset = tf.data.TFRecordDataset(filenames) filename is a string
     print('tfrecord')
     print(filenames)
@@ -69,7 +69,10 @@ def train_input_fn(filenames, shuffle_buffer_size,shuffle=True):
 
     if shuffle_buffer_size > 0:
         dataset = dataset.shuffle(shuffle_buffer_size)
-    dataset = dataset.repeat().batch(FLAGS.batch_size)
+    if repeat>0:
+        dataset = dataset.repeat(repeat).batch(FLAGS.batch_size)
+    else:
+        dataset = dataset.repeat().batch(FLAGS.batch_size)
 
     print(dataset.output_types)
     print(dataset.output_shapes)
@@ -131,7 +134,7 @@ def my_model(features, labels, mode, params):
             strides=(1, 1),
             padding="VALID"
         )#activation=tf.nn.relu
-        conv = tf.layers.batch_normalization(conv, training=(mode == tf.estimator.ModeKeys.TRAIN))
+        # conv = tf.layers.batch_normalization(conv, training=(mode == tf.estimator.ModeKeys.TRAIN))
         conv=tf.nn.relu(conv)
         # b = tf.get_variable("b-%s" % filter_size, [FLAGS.num_filters])  # ADD 2017-06-09
         if 'dropout_rate' in params and params['dropout_rate'] > 0.0:
@@ -139,13 +142,17 @@ def my_model(features, labels, mode, params):
 
             conv = tf.layers.dropout(conv, params['dropout_rate'],
                                             training=(mode == tf.estimator.ModeKeys.TRAIN))
-        # conv1 = tf.layers.batch_normalization(conv, training=(mode == tf.estimator.ModeKeys.TRAIN))
-        # h = tf.nn.relu(conv1)
+        # conv = tf.layers.batch_normalization(conv, training=(mode == tf.estimator.ModeKeys.TRAIN))
+
+
         pool = tf.layers.max_pooling2d(
             conv,
             pool_size=[FLAGS.sentence_max_len - filter_size + 1, 1],
             strides=(1, 1),
             padding="VALID")
+
+
+
         pooled_outputs.append(pool)
 
     h_pool = tf.concat(pooled_outputs, 3)  # shape: (batch, 1, len(filter_size) * embedding_size, 1)
@@ -304,32 +311,89 @@ def main(unused_argv):
     print("evalue eval set")
     classifier.evaluate(input_fn=input_fn_for_eval,steps=100)
     print("after train and evaluate")
+json_path = os.path.join(FLAGS.data_dir, 'dataset_params.json')
+with open(json_path) as f:
+    config = json.load(f)
 
+params = {
+    'vocab_size': config["vocab_size"],
+    'filter_sizes': list(map(int, FLAGS.filter_sizes.split(','))),
+    'learning_rate': FLAGS.learning_rate,
+    'dropout_rate': FLAGS.dropout_rate
+}
 
-def pred(unused_argv):
-    path_eval = os.path.join(FLAGS.data_dir, 'test.csv')
-    path_words = os.path.join(FLAGS.data_dir, 'words.txt')
-    input_fn_for_pred = lambda: input_fn(path_eval, path_words, 0, 100)
+word_embedding = assign_pretrained_word_embedding(params)
+def pred_per_file(file_path):
+
+    input_fn_for_pred = lambda: train_input_fn(file_path, shuffle_buffer_size=0,shuffle=False,repeat=1)
     json_path = os.path.join(FLAGS.data_dir, 'dataset_params.json')
     with open(json_path) as f:
         config = json.load(f)
+    params = {
+        'vocab_size': config["vocab_size"],
+        'filter_sizes': list(map(int, FLAGS.filter_sizes.split(','))),
+        'learning_rate': FLAGS.learning_rate,
+        'dropout_rate': FLAGS.dropout_rate
+    }
 
+    params['word_embedding']=word_embedding
     classifier = tf.estimator.Estimator(
         model_fn=my_model,
-        params={
-            'vocab_size': config["vocab_size"],
-            'filter_sizes': list(map(int, FLAGS.filter_sizes.split(','))),
-            'learning_rate': FLAGS.learning_rate,
-            'dropout_rate': FLAGS.dropout_rate
-        },
-        config=tf.estimator.RunConfig(model_dir=FLAGS.model_dir, save_checkpoints_steps=FLAGS.save_checkpoints_steps)
+        params=params,
+        config=tf.estimator.RunConfig(keep_checkpoint_max=2,model_dir=FLAGS.model_dir, save_checkpoints_steps=FLAGS.save_checkpoints_steps)
     )
+    eval1 = classifier.evaluate(input_fn=input_fn_for_pred)
+    print(eval1.get('accuracy'))
     eval_spec = classifier.predict(input_fn=input_fn_for_pred)
+
     count = 0
+
+    result=[]
+    label=[]
     for e in eval_spec:
         count += 1
-        print(e.get('classes', ''))
-    print(count)
+        result.append((file_path,count,int(list(e.get('classes', ''))[0])))
+        label.append(int(list(e.get('classes', ''))[0]))
+
+    # for r in result:
+    #     print(r)
+
+    return label,eval1.get('accuracy')
+def real_one(input_filename):
+    label_list=[]
+    for serialized_example in tf.python_io.tf_record_iterator(input_filename):
+        # Get serialized example from file
+        example = tf.train.Example()
+        example.ParseFromString(serialized_example)
+        label = example.features.feature["label"]
+        features = example.features.feature["text"]
+        label_list.append(label.int64_list.value[0])
+    return label_list
+
+
+def pred(unused_argv):
+    import re
+
+    local_path, pattern = os.path.split(FLAGS.eval_file_pattern)
+    for root, dirs, files in os.walk(local_path):
+        for file in files:
+
+            regu_cont = re.compile(r'.{}'.format(pattern), re.I)
+            if regu_cont.match(file):
+                right = 0
+                wrong = 0
+                print(file)
+                file_path = os.path.join(root, file)
+                # file_path='/home/tom/new_data/input_data/train_shuf_100000_11000_eval.tfrecords'
+                label,acc=pred_per_file(file_path)
+                label_list=real_one(file_path)
+                for pl,rl in zip(label,label_list):
+                    if pl==rl:
+                        right+=1
+                    else:
+                        wrong+=1
+                print(right,wrong,acc)
+
 
 
 if __name__ == "__main__":

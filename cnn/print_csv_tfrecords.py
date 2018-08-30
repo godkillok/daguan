@@ -14,19 +14,19 @@ def print_tfrecords(input_filename):
     example.ParseFromString(serialized_example)
     label = example.features.feature["label"]
     features = example.features.feature["text"]
-    print("Number: {}, label: {}, features: {}".format(current_print_number,
-                                                       label, features))
+    print("Number: {}, label: {}, features:".format(current_print_number,
+                                                    label.int64_list.value[0]))
 
     # Return when reaching max print number
     current_print_number += 1
-    print(current_print_number)
+    # print(current_print_number)
     # if current_print_number > max_print_number:
-    #   exit()
+    #   exit()[13]
 
 
 def main():
   current_path = os.getcwd()
-  tfrecords_file_name = "train_shuf_20000_19000_train.tfrecords"
+  tfrecords_file_name = "train_shuf_100000_1000_eval.tfrecords"
   # input_filename = os.path.join(current_path, tfrecords_file_name)
   input_filename='/home/tom/new_data/input_data/'+tfrecords_file_name
   print_tfrecords(input_filename)

@@ -53,43 +53,36 @@ def per_thouds_lines_dict(result_lines, vocab, path_text, count,flag_name):
 
     rl_num=0
     for rl in result_lines:
-        if count > 92277:
-            continue
-        rl_num+=1
+
         jo=0
-        while jo<6:
-            jo+=1
-            text = [vocab.get(r) for r in rl[0] if vocab.get(r, '-99')!='-99' ]
-            t_num=int(len(text)*0.75)
-            text=random.sample(text,t_num)
-            label = rl[1]
-            n = len(text)
-            for i in range(0, len(text), sentence_max_len):
-                text2 = text[i:i+sentence_max_len]
-                j=0
 
-                if len(text2) > sentence_max_len:
+        text = [vocab.get(r) for r in rl[0] if vocab.get(r, '-99')!='-99'  ]
+        label = rl[1]
+        n = len(text)
+        for i in range(0, len(text), sentence_max_len):
+            text2 = text[i:i+sentence_max_len]
+            j=0
 
-                    text2 = text2[0: sentence_max_len]
+            if len(text2) > sentence_max_len:
 
-                    if len(text2)!=sentence_max_len:
-                        raise Exception("error {}".format(len(text2)))
+                text2 = text2[0: sentence_max_len]
+
+                if len(text2)!=sentence_max_len:
+                    raise Exception("error {}".format(len(text2)))
+                tf_lines.append([text2, label])
+            elif len(text2) < sentence_max_len:
+
+                if len(text2) > sentence_max_len*0.4:
+                    text2 += [0] * (sentence_max_len - len(text2))
+                    if len(text2) != sentence_max_len:
+                        raise Exception("error")
                     tf_lines.append([text2, label])
-                elif len(text2) < sentence_max_len:
-
-                    if len(text2) > sentence_max_len*0.4:
-                        text2 += [0] * (sentence_max_len - len(text2))
-                        if len(text2) != sentence_max_len:
-                            raise Exception("error")
-                        tf_lines.append([text2, label])
-                elif len(text2)== sentence_max_len:
+            elif len(text2)== sentence_max_len:
 
                     tf_lines.append([text2, label])
-        if rl_num*5%3000==0 or rl_num==len(result_lines)-1:
-            print(rl_num)
+
     if len(tf_lines)>0:
         write_tfrecords(tf_lines, path_text, count,flag_name)
-            # tf_lines=[]
 
 def generate_tf_dic(path_text):
     with open(FLAGS.path_vocab, 'r', encoding='utf8') as f:
