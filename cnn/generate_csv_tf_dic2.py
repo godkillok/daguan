@@ -22,7 +22,7 @@ with open('./valid_id','r') as f:
 valid={}
 for l in lines:
     try:
-        id,lab=l.split()
+        id,lab=l.split(',')
 
         valid[int(id)]=int(lab)
     except:
