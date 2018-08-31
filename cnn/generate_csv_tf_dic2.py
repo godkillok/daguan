@@ -16,6 +16,19 @@ sentence_max_len = 250
 pad_word = FLAGS.pad_word
 
 label_class=[]
+
+with open('./valid_id','r') as f:
+    lines=f.readlines()
+valid={}
+for l in lines:
+    try:
+        id,lab=l.split()
+
+        valid[int(id)]=int(lab)
+    except:
+        pass
+print('valid test is {}'.format(len(valid)))
+
 def feature_auto(value):
     if isinstance(value, int):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
@@ -41,7 +54,7 @@ def parse_line_dict(record):
     tokens = text.split(' ')
       # type: int
     if len(fields) == 2:
-        label=0
+        label=valid.get(int(fields[0]))-1
     else:
         label = int(fields[2]) - 1
     label_class.append(label)
@@ -58,6 +71,7 @@ def per_thouds_lines_dict(result_lines, vocab, path_text, count,flag_name):
 
         text = [vocab.get(r) for r in rl[0] if vocab.get(r, '-99')!='-99'  ]
         label = rl[1]
+        _id=rl[2]
         n = len(text)
         for i in range(0, len(text), sentence_max_len):
             text2 = text[i:i+sentence_max_len]
@@ -69,17 +83,23 @@ def per_thouds_lines_dict(result_lines, vocab, path_text, count,flag_name):
 
                 if len(text2)!=sentence_max_len:
                     raise Exception("error {}".format(len(text2)))
-                tf_lines.append([text2, label])
+                tf_lines.append([text2,_id, label])
             elif len(text2) < sentence_max_len:
 
                 if len(text2) > sentence_max_len*0.4:
                     text2 += [0] * (sentence_max_len - len(text2))
                     if len(text2) != sentence_max_len:
                         raise Exception("error")
-                    tf_lines.append([text2, label])
+                    tf_lines.append([text2,_id, label])
             elif len(text2)== sentence_max_len:
 
-                    tf_lines.append([text2, label])
+                    tf_lines.append([text2,_id, label])
+
+        if len(text) <= sentence_max_len * 0.4:
+            text += [0] * (sentence_max_len - len(text))
+            if len(text) != sentence_max_len:
+                raise Exception("error")
+            tf_lines.append([text, _id, label])
 
     if len(tf_lines)>0:
         write_tfrecords(tf_lines, path_text, count,flag_name)
@@ -95,25 +115,27 @@ def generate_tf_dic(path_text):
         lines = f.readlines()
         for line in lines:
             field=line.split(',')
-            count += 1
+
             try:
-                int(field[0])
+                ge=int(field[0])
             except:
                 continue
-            result_lines.append(parse_line_dict(line))
+            if ge in valid:
+                count += 1
+                result_lines.append(parse_line_dict(line)+[int(field[0])])
             if count % 20000 == 0 or count == len(lines) - 1:
                 print(count)
                 if len(field)>2:
                     print('gg')
                     if count<92277:
-                        print('--')
-                        flag_name='13shutrain'
+                        flag_name='_ttrain'
                     else:
-                        flag_name = 'no'
+                        flag_name = '_teval'
                 else:
-                    flag_name = 'pred'
+                    flag_name = '_etrain'
                 per_thouds_lines_dict(result_lines, vocab, path_text, count,flag_name)
                 result_lines = []
+        print(count)
 
 
 def write_tfrecords(tf_lines, path_text, count,flag_name):
@@ -124,13 +146,15 @@ def write_tfrecords(tf_lines, path_text, count,flag_name):
     print("Start to convert {} to {}".format(len(tf_lines), os.path.join(root_path, output_file)))
 
     writer = tf.python_io.TFRecordWriter(os.path.join(root_path, output_file))
-    random.shuffle(tf_lines)
+
     num = 0
     for data in tf_lines:
         text = data[0]
-        label = data[1]
+        label = data[2]
+        _id=data[1]
         example = tf.train.Example(features=tf.train.Features(feature={
             'text': feature_auto(list(text)),
+            # '_id':feature_auto(int(_id)),
             'label': feature_auto(int(label))
         }))
 
@@ -146,7 +170,7 @@ def main():
     s3_input = FLAGS.data_dir
     for root, dirs, files in os.walk(s3_input):
         for file in files:
-            if file.endswith("f.csv"):
+            if file.endswith("t.csv"):
                 print('start to process file {}'.format(file))
                 generate_tf_dic(os.path.join(root, file))
     print(set(label_class))

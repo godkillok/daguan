@@ -14,11 +14,15 @@ import json
 #model_dir2 is the good one embedding size 128
 flags = tf.app.flags
 flags.DEFINE_string("model_dir", "/media/tom/文档/model_dir3", "Base directory for the model.")
-flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/input_data/*shutrain.tfrecords", "train file pattern")
+flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/input_data/*train.tfrecords", "train file pattern")
 flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/input_data/*eval.tfrecords", "evalue file pattern")
+flags.DEFINE_string("pred_eval_file_pattern", "/home/tom/new_data/input_data/*teval.tfrecords", "evalue file pattern")
+
+flags.DEFINE_string("pred_file_pattern", "/home/tom/new_data/input_data/*pred.tfrecords", "evalue file pattern")
+
 flags.DEFINE_float("dropout_rate", 0.5, "Drop out rate")
 flags.DEFINE_float("learning_rate", 0.4, "Learning rate")
-flags.DEFINE_float("decay_rate", 0.8, "Learning rate")
+flags.DEFINE_float("decay_rate", 0.8, "L+earning rate")
 flags.DEFINE_integer("embedding_size", 100, "embedding size")
 flags.DEFINE_integer("num_filters", 120, "number of filters")
 flags.DEFINE_integer("num_classes", 19, "number of classes")
@@ -27,7 +31,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size"
 flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
 flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 40000,
+flags.DEFINE_integer("train_steps", 50010,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("decay_steps", 5000,
                      "Number of (global) training steps to perform")
@@ -57,10 +61,43 @@ def parse_exmp(serialized_example):
 
     return feats, labels
 
+def parse_exmp2(serialized_example):
+    feats = tf.parse_single_example(
+        serialized_example,
+        features={
+            "text": tf.FixedLenFeature([FLAGS.sentence_max_len], tf.int64),
+            "_id": tf.FixedLenFeature([], tf.int64),
+            # "text": tf.FixedLenSequenceFeature([], tf.int64,allow_missing=True),
+            "label": tf.FixedLenFeature([], tf.int64)
+        })
+
+    labels = feats.pop('label')
+
+    return feats, labels
+
+def pred_input_fn(filenames, shuffle_buffer_size,shuffle=True,repeat=0):
+    # dataset = tf.data.TFRecordDataset(filenames) filename is a string
+    print('tfrecord')
+    print(filenames)
+    files = tf.data.Dataset.list_files(filenames, shuffle=shuffle)  # A dataset of all files matching a pattern.
+    dataset = files.apply(
+        tf.contrib.data.parallel_interleave(tf.data.TFRecordDataset, cycle_length=FLAGS.num_parallel_readers))
+    dataset = dataset.map(parse_exmp2, num_parallel_calls=10)
+
+    if shuffle_buffer_size > 0:
+        dataset = dataset.shuffle(shuffle_buffer_size)
+    if repeat>0:
+        dataset = dataset.repeat(repeat).batch(FLAGS.batch_size)
+    else:
+        dataset = dataset.repeat().batch(FLAGS.batch_size)
+
+    print(dataset.output_types)
+    print(dataset.output_shapes)
+    return dataset
 
 def train_input_fn(filenames, shuffle_buffer_size,shuffle=True,repeat=0):
     # dataset = tf.data.TFRecordDataset(filenames) filename is a string
-    print('tfrecord')
+    print('train tfrecord')
     print(filenames)
     files = tf.data.Dataset.list_files(filenames, shuffle=shuffle)  # A dataset of all files matching a pattern.
     dataset = files.apply(
@@ -323,9 +360,10 @@ params = {
 }
 
 word_embedding = assign_pretrained_word_embedding(params)
+
 def pred_per_file(file_path):
 
-    input_fn_for_pred = lambda: train_input_fn(file_path, shuffle_buffer_size=0,shuffle=False,repeat=1)
+    input_fn_for_pred = lambda: pred_input_fn(file_path, shuffle_buffer_size=0,shuffle=False,repeat=1)
     json_path = os.path.join(FLAGS.data_dir, 'dataset_params.json')
     with open(json_path) as f:
         config = json.load(f)
@@ -342,8 +380,7 @@ def pred_per_file(file_path):
         params=params,
         config=tf.estimator.RunConfig(keep_checkpoint_max=2,model_dir=FLAGS.model_dir, save_checkpoints_steps=FLAGS.save_checkpoints_steps)
     )
-    eval1 = classifier.evaluate(input_fn=input_fn_for_pred)
-    print(eval1.get('accuracy'))
+
     eval_spec = classifier.predict(input_fn=input_fn_for_pred)
 
     count = 0
@@ -358,23 +395,72 @@ def pred_per_file(file_path):
     # for r in result:
     #     print(r)
 
-    return label,eval1.get('accuracy')
+    return label
+
 def real_one(input_filename):
     label_list=[]
+    id_list=[]
     for serialized_example in tf.python_io.tf_record_iterator(input_filename):
         # Get serialized example from file
         example = tf.train.Example()
         example.ParseFromString(serialized_example)
         label = example.features.feature["label"]
-        features = example.features.feature["text"]
+        features = example.features.feature["_id"]
         label_list.append(label.int64_list.value[0])
-    return label_list
+        id_list.append(features.int64_list.value[0])
+    return label_list,id_list
 
 
 def pred(unused_argv):
     import re
+    from collections import Counter
+    acc_list=[]
+    from collections import defaultdict
+    dic = defaultdict(list)
+    local_path, pattern = os.path.split(FLAGS.pred_file_pattern)
+    for root, dirs, files in os.walk(local_path):
+        for file in files:
 
-    local_path, pattern = os.path.split(FLAGS.eval_file_pattern)
+            regu_cont = re.compile(r'.{}'.format(pattern), re.I)
+            if regu_cont.match(file):
+                right = 0
+                wrong = 0
+                print(file)
+                file_path = os.path.join(root, file)
+                # file_path='/home/tom/new_data/input_data/train_shuf_100000_11000_eval.tfrecords'
+                label=pred_per_file(file_path)
+                label_list,id_list=real_one(file_path)
+
+
+                for pl,_lb,_id in zip(label,label_list,id_list):
+                    dic[_id].append(pl)
+    base_line={}
+    with open('/home/tom/Desktop/baseline.csv','r') as f:
+        lines=f.readlines()
+        for l in lines:
+            _id,lb=l.split(',')
+            base_line[_id]=lb
+    pred_res=[]
+    for (k, v_list) in dic.items():
+        sv = Counter(v_list).most_common(2)
+        print('result:'+str(k)+'\t'+str(len(v_list))+'\t',sv)
+    # with open('/home/tom/Desktop/wcnn.txt','w',encoding='utf8') as f:
+    #     for (k,v_list) in dic.items():
+    #         sv=Counter(v_list).most_common(2)
+    #         f.writelines('{},{}\n'.format(k+'\t'+str(len(v_list))+'\t',sv))
+        # if len(sv)>1:
+        #     if sv[0][1]>sv[1][1]:
+        #         pred_res.append((k,sv[0][0]))
+        #     else:
+        #         v_list.append()
+
+
+
+
+def pred_eval(unused_argv):
+    import re
+    acc_list=[]
+    local_path, pattern = os.path.split(FLAGS.pred_file_pattern)
     for root, dirs, files in os.walk(local_path):
         for file in files:
 
@@ -386,13 +472,42 @@ def pred(unused_argv):
                 file_path = os.path.join(root, file)
                 # file_path='/home/tom/new_data/input_data/train_shuf_100000_11000_eval.tfrecords'
                 label,acc=pred_per_file(file_path)
-                label_list=real_one(file_path)
-                for pl,rl in zip(label,label_list):
+                label_list,id_list=real_one(file_path)
+                from collections import defaultdict
+                dic=defaultdict(list)
+                for pl,rl,_id in zip(label,label_list,id_list):
+                    dic[_id].append(pl==rl)
                     if pl==rl:
                         right+=1
                     else:
                         wrong+=1
+                # print(dic)
                 print(right,wrong,acc)
+                right = 0
+                wrong = 0
+                for v_list in dic.values():
+                    tn = 0
+                    fn = 0
+                    for v in v_list:
+                        if v:
+                            tn += 1
+                        else:
+                            fn += 1
+                        if tn > fn:
+                            right += 1
+                        elif tn < fn:
+                            wrong += 1
+                        elif tn == fn:
+
+                            if v_list[0]:
+                                right += 1
+                            else :
+                                wrong += 1
+                print(right, wrong, right/(right+wrong))
+                print('gg')
+                acc_list.append((acc,right/(right+wrong)))
+    for a in acc_list:
+        print(a)
 
 
 

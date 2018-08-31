@@ -13,7 +13,7 @@ import json
 # sys.setdefaultencoding("utf-8")
 
 flags = tf.app.flags
-flags.DEFINE_string("model_dir", "./model_dir", "Base directory for the model.")
+flags.DEFINE_string("model_dir", "./model_dir3", "Base directory for the model.")
 flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/train*", "train file pattern")
 flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/test*", "evalue file pattern")
 flags.DEFINE_float("dropout_rate", 0.5, "Drop out rate")

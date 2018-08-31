@@ -13,9 +13,9 @@ def print_tfrecords(input_filename):
     example = tf.train.Example()
     example.ParseFromString(serialized_example)
     label = example.features.feature["label"]
-    features = example.features.feature["text"]
+    features = example.features.feature["_id"]
     print("Number: {}, label: {}, features:".format(current_print_number,
-                                                    label.int64_list.value[0]))
+                                                    features.int64_list.value[0]))
 
     # Return when reaching max print number
     current_print_number += 1
@@ -26,7 +26,7 @@ def print_tfrecords(input_filename):
 
 def main():
   current_path = os.getcwd()
-  tfrecords_file_name = "train_shuf_100000_1000_eval.tfrecords"
+  tfrecords_file_name = "test_100000_30000_pred.tfrecords"
   # input_filename = os.path.join(current_path, tfrecords_file_name)
   input_filename='/home/tom/new_data/input_data/'+tfrecords_file_name
   print_tfrecords(input_filename)
