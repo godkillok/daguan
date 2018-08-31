@@ -7,7 +7,7 @@ import re
 import os
 import json
 
-# for python 22.x
+# for python 22.x1
 # import sys
 # reload(sys)
 # sys.setdefaultencoding("utf-8")
