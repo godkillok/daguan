@@ -85,10 +85,7 @@ X_train, X_train_test, y_train, y_train_test = train_test_split(X_train,
 
 print('load data complete {}'.format(X_train.shape))
 
-lin_clf = svm.LinearSVC()
-lin_clf.fit(X_train,y_train)
-preds = lin_clf.predict(X_test)
-svm_pred = lin_clf.predict(X_train_test)
+
 
 def benchmark(clf):
     print('_' * 80)
