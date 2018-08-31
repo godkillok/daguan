@@ -13,7 +13,7 @@ import json
 # sys.setdefaultencoding("utf-8")
 #model_dir2 is the good one embedding size 128
 flags = tf.app.flags
-flags.DEFINE_string("model_dir", "/media/tom/文档/model_dir3", "Base directory for the model.")
+flags.DEFINE_string("model_dir", "/media/tom/软件/model_dir3", "Base directory for the model.")
 flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/input_data/*train.tfrecords", "train file pattern")
 flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/input_data/*eval.tfrecords", "evalue file pattern")
 flags.DEFINE_string("pred_eval_file_pattern", "/home/tom/new_data/input_data/*teval.tfrecords", "evalue file pattern")
@@ -21,7 +21,7 @@ flags.DEFINE_string("pred_eval_file_pattern", "/home/tom/new_data/input_data/*te
 flags.DEFINE_string("pred_file_pattern", "/home/tom/new_data/input_data/*pred.tfrecords", "evalue file pattern")
 
 flags.DEFINE_float("dropout_rate", 0.5, "Drop out rate")
-flags.DEFINE_float("learning_rate", 0.4, "Learning rate")
+flags.DEFINE_float("learning_rate", 0.3, "Learning rate")
 flags.DEFINE_float("decay_rate", 0.8, "L+earning rate")
 flags.DEFINE_integer("embedding_size", 100, "embedding size")
 flags.DEFINE_integer("num_filters", 120, "number of filters")
@@ -29,9 +29,9 @@ flags.DEFINE_integer("num_classes", 19, "number of classes")
 flags.DEFINE_integer("num_parallel_readers", 4, "number of classes")
 flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size")
 flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
-flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
+flags.DEFINE_integer("batch_size", 256, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 50010,
+flags.DEFINE_integer("train_steps", 150010,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("decay_steps", 5000,
                      "Number of (global) training steps to perform")
@@ -207,7 +207,7 @@ def my_model(features, labels, mode, params):
     # learning_rate = tf.train.exponential_decay(params['learning_rate'], tf.train.get_global_step(), FLAGS.decay_steps,
     #                                            FLAGS.decay_rate, staircase=True)
     learning_rate=params['learning_rate']
-    optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate)
+    optimizer = tf.train.AdagradOptimizer(learning_rate=learning_rate)
 
     def _train_op_fn(loss):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
