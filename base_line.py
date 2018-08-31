@@ -127,13 +127,13 @@ test_pred['id']=test_id
 for clf, name in (
         # (voting_clf, 'voting'),
         (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
-        (Perceptron(n_iter=50), "Perceptron"),
+        (Perceptron(n_iter=50,penalty='l2',n_jobs=-1,), "Perceptron"),
         # # (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
         # # (KNeighborsClassifier(n_neighbors=10), "kNN"),
         (MultinomialNB(),'MultinomialNB'),
         # (RandomForestClassifier(n_estimators=50,n_jobs=-1), "Random forest"),
-        ( svm.SVC(decision_function_shape='ovo'),'svmsvc'),
-        (LogisticRegression(C=4, dual=True,n_jobs=4),"Logistic Regression"),
+        # ( svm.SVC(decision_function_shape='ovo'),'svmsvc'),
+        (LogisticRegression(C=4, dual=True,n_jobs=-1),"Logistic Regression"),
             (svm.LinearSVC(),"LinearSVC")
 ):
     print('=' * 80)
