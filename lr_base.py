@@ -3,9 +3,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import time
 t1=time.time()
-train = pd.read_csv('../input/train.csv')
-test = pd.read_csv('../input/test.csv')
-test_id = pd.read_csv('../input/test.csv')[["id"]].copy()
+train = pd.read_csv('../input_data/train.csv')
+test = pd.read_csv('../input_data/test.csv')
+test_id = pd.read_csv('../input_data/test.csv')[["id"]].copy()
 
 column="word_seg"
 n = train.shape[0]
