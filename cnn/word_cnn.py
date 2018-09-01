@@ -31,7 +31,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size"
 flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
 flags.DEFINE_integer("batch_size", 256, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 150010,
+flags.DEFINE_integer("train_steps", 30010,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("decay_steps", 5000,
                      "Number of (global) training steps to perform")

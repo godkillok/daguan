@@ -59,14 +59,14 @@ new_ = pd.read_csv('./cnn/valid_id')
 train = pd.read_csv('../input_data/train.csv')
 test = pd.read_csv('../input_data/test.csv')
 
-
-new_=pd.merge(new_, test, how='inner', on=['id', 'id'])
-print('merge_before')
-print(train._info_axis)
-print(train.shape)
-train = train.append(new_)
-print('merge_after')
-print(train._info_axis)
+#
+# new_=pd.merge(new_, test, how='inner', on=['id', 'id'])
+# print('merge_before')
+# print(train._info_axis)
+# print(train.shape)
+# train = train.append(new_)
+# print('merge_after')
+# print(train._info_axis)
 print(train.shape)
 
 
@@ -117,12 +117,12 @@ def benchmark(clf):
 results=[]
 
 from sklearn.ensemble import VotingClassifier
-# voting_clf = VotingClassifier( estimators=[('svmsvc', svm.SVC(probability=True)), ("lr", LogisticRegression(C=4, dual=True)),("rf", RandomForestClassifier(n_estimators=20)), ("svc", MultinomialNB())],n_jobs=4,voting="soft" )
+voting_clf = VotingClassifier( estimators=[('svmsvc', svm.SVC(probability=True)), ("lr", LogisticRegression(C=4, dual=True,n_jobs=-1)), ("nb", MultinomialNB())],n_jobs=-1,voting="soft" )
 
 test_pred={}
 test_pred['id']=test_id
 for clf, name in (
-        # (voting_clf, 'voting'),
+        (voting_clf, 'voting'),
         (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
         (Perceptron(n_iter=50,penalty='l2',n_jobs=-1,), "Perceptron"),
         # # (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
