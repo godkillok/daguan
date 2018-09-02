@@ -13,7 +13,7 @@ import json
 # sys.setdefaultencoding("utf-8")
 #model_dir2 is the good one embedding size 128
 flags = tf.app.flags
-flags.DEFINE_string("model_dir", "/media/tom/软件/model_dir3", "Base directory for the model.")
+flags.DEFINE_string("model_dir", "/media/tom/软件/model_dir1", "Base directory for the model.")
 flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/input_data/*train.tfrecords", "train file pattern")
 flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/input_data/*eval.tfrecords", "evalue file pattern")
 flags.DEFINE_string("pred_eval_file_pattern", "/home/tom/new_data/input_data/*teval.tfrecords", "evalue file pattern")
@@ -24,12 +24,12 @@ flags.DEFINE_float("dropout_rate", 0.5, "Drop out rate")
 flags.DEFINE_float("learning_rate", 0.3, "Learning rate")
 flags.DEFINE_float("decay_rate", 0.8, "L+earning rate")
 flags.DEFINE_integer("embedding_size", 100, "embedding size")
-flags.DEFINE_integer("num_filters", 120, "number of filters")
+flags.DEFINE_integer("num_filters", 200, "number of filters")
 flags.DEFINE_integer("num_classes", 19, "number of classes")
 flags.DEFINE_integer("num_parallel_readers", 4, "number of classes")
 flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size")
 flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
-flags.DEFINE_integer("batch_size", 256, "number of instances in a batch")
+flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
 flags.DEFINE_integer("train_steps", 30010,
                      "Number of (global) training steps to perform")
@@ -173,6 +173,15 @@ def my_model(features, labels, mode, params):
         )#activation=tf.nn.relu
         # conv = tf.layers.batch_normalization(conv, training=(mode == tf.estimator.ModeKeys.TRAIN))
         conv=tf.nn.relu(conv)
+
+        conv = tf.layers.conv2d(
+            conv,
+            filters=FLAGS.num_filters,
+            kernel_size=[filter_size, 1],
+            strides=(1, 1),
+            padding="SAME"
+        )#activation=tf.nn.relu
+        conv = tf.nn.relu(conv)
         # b = tf.get_variable("b-%s" % filter_size, [FLAGS.num_filters])  # ADD 2017-06-09
         if 'dropout_rate' in params and params['dropout_rate'] > 0.0:
             # h_pool_flat = tf.layers.batch_normalization(h_pool_flat, training=(mode == tf.estimator.ModeKeys.TRAIN))
