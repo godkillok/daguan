@@ -13,7 +13,7 @@ vec = TfidfVectorizer(ngram_range=(1,2),min_df=3, max_df=0.9,use_idf=1,smooth_id
 trn_term_doc = vec.fit_transform(train[column])
 test_term_doc = vec.transform(test[column])
 
-y=(train["classify"]-1).astype(int)
+y=(train["class"]-1).astype(int)
 clf = LogisticRegression(C=4, dual=True)
 clf.fit(trn_term_doc, y)
 preds=clf.predict_proba(test_term_doc)
