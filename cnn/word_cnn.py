@@ -44,7 +44,7 @@ flags.DEFINE_string("test_dir", " /data/tanggp/deeplearning-master/word_cnn/dbpe
 flags.DEFINE_string("filter_sizes", "2,3,4,5", "Comma-separated list of number of window size in each filter")
 flags.DEFINE_string("pad_word", "<pad>", "used for pad sentence")
 flags.DEFINE_string("path_vocab", "/home/tom/new_data/input_data/words.txt", "used for word index")
-flags.DEFINE_string("fast_text", "/home/tom/new_data/super.bin", "used for word index")
+flags.DEFINE_string("fast_text", "/home/tom/new_data/super_more.bin", "used for word index")
 FLAGS = flags.FLAGS
 
 
