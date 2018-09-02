@@ -23,7 +23,7 @@ archive_path='/home/tom/scikit_learn_data/20news_home/20news-bydate.tar.gz'
 target_dir='/home/tom/scikit_learn_data/20news_home'
 
 
-# tarfile.open(archive_path, "r:gz").extractall(path=target_dir)1
+# tarfile.open(archive_path, "r:gz").extractall(path=target_dir)11
 
 data = fetch_20newsgroups()
 X, y = data.data, data.target
