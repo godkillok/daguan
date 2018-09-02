@@ -123,7 +123,9 @@ def my_model(features, labels, mode, params):
     hidden_size=FLAGS.embedding_size
     sentence = tf.nn.embedding_lookup(embeddings, sentence)  # shape:(batch, sentence_len, embedding_size)
     # add a channel dim, required by the conv2d and max_pooling2d method
-
+    # sentence = tf.expand_dims(sentence, -1)  # shape:(batch, sentence_len/height, embedding_size/width, channels=1)
+    # sentence = tf.layers.batch_normalization(sentence, training=(mode == tf.estimator.ModeKeys.TRAIN))
+    pooled_outputs = []
 
     lstm_fw_cell=tf.nn.rnn_cell.BasicLSTMCell(hidden_size) #forward direction cell
     lstm_bw_cell=tf.nn.rnn_cell.BasicLSTMCell(hidden_size) #backward direction cell
@@ -139,7 +141,29 @@ def my_model(features, labels, mode, params):
     output_rnn_last = tf.reduce_mean(output_rnn, axis=1)  # [batch_size,hidden_size*2] #output_rnn_last=output_rnn[:,-1,:] ##[batch_size,hidden_size*2] #TODO
     print("output_rnn_last:", output_rnn_last)  # <tf.Tensor 'strided_slice:0' shape=(?, 200) dtype=float32>
     # 4. logits(use linear layer)
+    pooled_outputs=[]
+    pooled_outputs.append(output_rnn_last)
+    pooled_outputs.append(sentence)
+    h_pool = tf.concat(pooled_outputs, 3)  # shape: (batch, 1, len(filter_size) * embedding_size, 1)
 
+
+
+
+
+
+
+
+
+    h_pool_flat = tf.reshape(h_pool, [-1, FLAGS.num_filters * len(
+        params["filter_sizes"])])  # shape: (batch, len(filter_size) * embedding_size)
+    if 'dropout_rate' in params and params['dropout_rate'] > 0.0:
+        # h_pool_flat = tf.layers.batch_normalization(h_pool_flat, training=(mode == tf.estimator.ModeKeys.TRAIN))
+
+        h_pool_flat = tf.layers.dropout(h_pool_flat, params['dropout_rate'],
+                                        training=(mode == tf.estimator.ModeKeys.TRAIN))
+    h_pool_flat = tf.layers.batch_normalization(h_pool_flat, training=(mode == tf.estimator.ModeKeys.TRAIN))
+
+    logits = tf.layers.dense(h_pool_flat, FLAGS.num_classes, activation=None)
 
     logits = tf.layers.dense(output_rnn_last, FLAGS.num_classes, activation=None)
 

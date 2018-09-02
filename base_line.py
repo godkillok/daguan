@@ -6,7 +6,7 @@ import time
 t1=time.time()
 #1
 
-from sklearn.datasets import fetch_20newsgroups
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.feature_selection import SelectFromModel
@@ -81,7 +81,7 @@ y_train=(train["class"]-1).astype(int)
 
 X_train, X_train_test, y_train, y_train_test = train_test_split(X_train,
                                                             y_train,
-                                                            test_size=0.1)
+                                                            test_size=0.1,random_state=42)
 
 print('load data complete {}'.format(X_train.shape))
 
@@ -117,7 +117,7 @@ def benchmark(clf):
 results=[]
 
 from sklearn.ensemble import VotingClassifier
-voting_clf = VotingClassifier( estimators=[('svmsvc', svm.SVC(probability=True)), ("lr", LogisticRegression(C=4, dual=True,n_jobs=-1)), ("nb", MultinomialNB())],n_jobs=-1,voting="soft" )
+voting_clf = VotingClassifier( estimators=[('svmsvc', svm.SVC(probability=True)), ("lr", LogisticRegression(C=4, dual=True,n_jobs=-1)), ("nb", MultinomialNB())],n_jobs=1,voting="soft" )
 
 test_pred={}
 test_pred['id']=test_id

@@ -1,12 +1,9 @@
 import csv
 import pandas as pd
-test = pd.read_csv('C:/work/input_data/test.csv')
-new_ = pd.read_csv('valid_id')
-# ge=test.join(new_, how ='inner',on='id')
-new_=pd.merge(new_, test, how='inner', on=['id', 'id'])
-
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn import svm
+column = "word_seg"
 train = pd.read_csv('C:/work/input_data/train.csv')
-print(train._info_axis)
-print(train.shape)
-result = train.append(geg)
+vec = TfidfVectorizer(ngram_range=(1,2),min_df=0, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
+trn_term_doc = vec.fit_transform(train[column])
 print('gg')
