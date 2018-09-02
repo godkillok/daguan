@@ -26,7 +26,7 @@ target_dir='/home/tom/scikit_learn_data/20news_home'
 # tarfile.open(archive_path, "r:gz").extractall(path=target_dir)1
 
 data = fetch_20newsgroups()
-X, y = data['data'], data['target']
+X, y = data.data, data.target
 X_train, X_test, y_train, y_test =train_test_split(X, y, test_size=0.1, random_state=111)
 #创建数据集
 dataset = Dataset(X_train,y_train,X_test)
