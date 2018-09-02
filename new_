@@ -9,6 +9,9 @@ tfidf+ 多些sample这个效果不是很好，都在0.71左右
 
 ./fasttext supervised -input ../input_data/train_tfidf_more.txt  -pretrainedVectors  ../input_data/w2v.vec -output ../input_data/sur_tfidf_more
 
+./fasttext supervised -input ../input_data/new_train_more_data.csv  -pretrainedVectors  ../w2v.vec -output ../new_more_data
+
+
 sed -i "s/__label__ / __label__/g" train_set_tfidf.txt
 
 

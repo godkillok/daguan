@@ -2,7 +2,7 @@
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import HashingVectorizer
-
+import random
 
 type_='train'
 dataset_path='../input_data/{}.csv'.format(type_)
@@ -12,6 +12,7 @@ with open(dataset_path) as file:
 
 step=65000
 
+random.shuffle(lines)
 with open(out_put,'w') as f:
     for i in range(0,len(lines),step):
         dataset = []
@@ -25,7 +26,7 @@ with open(out_put,'w') as f:
                     label.append(line.split(',')[2])
                 else:
                     dataset.append(line.split(',')[1].split(' '))
-                    label.append(line.split(',')[0])
+                    label.append(line.split(',')[2])
             count += 1
 
 

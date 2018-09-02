@@ -24,7 +24,7 @@ For more information: http://mlwave.com/kaggle-ensembling-guide/
     wrote to ./samples/kaggle_vote.csv
 
 
-    $ python ./src/kaggle_vote.py "./samples/_*.csv" "./samples/kaggle_vote_weighted.csv" "weighted"
+    $ python ./src/kaggle_vote.py "./files/_*.csv" "./files/kaggle_vote_weighted.csv" "weighted"
     parsing: ./samples/_w3_method1.csv
     Using weight: 3
     parsing: ./samples/_w2_method2.csv

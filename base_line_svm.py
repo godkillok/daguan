@@ -4,7 +4,7 @@ from sklearn import svm
 #12813123
 column = "word_seg"
 new_ = pd.read_csv('./cnn/valid_id')
-train = pd.read_csv('../input_data/train_shuf.csv')
+train = pd.read_csv('../input_data/train.csv')
 test = pd.read_csv('../input_data/test.csv')
 
 
@@ -14,9 +14,9 @@ print(train._info_axis)
 print(train.shape)
 train = train.append(new_)
 train.to_csv('../input_data/new_train.csv',index=False,index_label=False,header=True)
-# print('merge_after')
-# print(train._info_axis)
-# print(train.shape)
+print('merge_after')
+print(train._info_axis)
+print(train.shape)
 #
 #
 # test_id = test["id"].copy()
