@@ -6,7 +6,7 @@ import time
 t1=time.time()
 #1
 
-from sklearn.datasets import fetch_20newsgroups
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.feature_selection import SelectFromModel
@@ -81,7 +81,7 @@ y_train=(train["class"]-1).astype(int)
 
 X_train, X_train_test, y_train, y_train_test = train_test_split(X_train,
                                                             y_train,
-                                                            test_size=0.1)
+                                                            test_size=0.1,random_state=42)
 
 print('load data complete {}'.format(X_train.shape))
 
