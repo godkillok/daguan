@@ -18,7 +18,7 @@ clf = LogisticRegression(C=4, dual=True)
 clf.fit(trn_term_doc, y)
 preds=clf.predict_proba(test_term_doc)
 
-#保存概率文件
+#保存概率文件1
 test_prob=pd.DataFrame(preds)
 test_prob.columns=["class_prob_%s"%i for i in range(1,preds.shape[1]+1)]
 test_prob["id"]=list(test_id["id"])
