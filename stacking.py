@@ -42,7 +42,7 @@ X_test=X_test.toarray()
 
 #创建数据集1
 dataset = Dataset(X_train,y_train,X_test,use_cache=False)
-#创建RF模型和LR模型
+#创建RF模型和LR模型1
 model_nb = Classifier(dataset=dataset, estimator=MultinomialNB,name='nb')
 model_lr = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'dual':True,'n_jobs':-1},name='lr')
 model_svm = Classifier(dataset=dataset, estimator=svm.SVC, parameters={ 'probability':True},name='svm')
