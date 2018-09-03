@@ -41,7 +41,7 @@ print('tttt')
 # X_train=X_train.toarray()
 # X_test=X_test.toarray()
 print('to array')
-#创建数据集1
+#创建数据集11
 dataset = Dataset(X_train,y_train,X_test,use_cache=False)
 #创建RF模型和LR模型1
 model_nb = Classifier(dataset=dataset, estimator=MultinomialNB,name='nb',use_cache=False)
