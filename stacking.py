@@ -33,7 +33,7 @@ y=(train["class"]-1).astype(int)
 
 
 vec = TfidfVectorizer(ngram_range=(1,2),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
-trn_term_doc = vec.fit_transform(train)
+trn_term_doc = vec.fit_transform(train[column])
 test_term_doc = vec.transform(test[column])
 
 X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.1, random_state=111)
