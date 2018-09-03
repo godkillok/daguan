@@ -40,7 +40,7 @@ X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.
 X_train=X_train.toarray()
 X_test=X_test.toarray()
 
-#创建数据集
+#创建数据集1
 dataset = Dataset(X_train,y_train,X_test,use_cache=False)
 #创建RF模型和LR模型
 model_nb = Classifier(dataset=dataset, estimator=MultinomialNB,name='nb')
