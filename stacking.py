@@ -38,8 +38,8 @@ test_term_doc = vec.transform(test[column])
 
 X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.1, random_state=111)
 print('tttt')
-X_train=X_train.toarray()
-X_test=X_test.toarray()
+# X_train=X_train.toarray()
+# X_test=X_test.toarray()
 print('to array')
 #创建数据集1
 dataset = Dataset(X_train,y_train,X_test,use_cache=False)
