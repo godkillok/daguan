@@ -32,7 +32,7 @@ test = pd.read_csv('../input_data/test.csv')
 y=(train["class"]-1).astype(int)
 
 
-vec = TfidfVectorizer(ngram_range=(1,1),min_df=3, max_df=0.8,use_idf=1,smooth_idf=1, sublinear_tf=1)
+vec = TfidfVectorizer(ngram_range=(1,1),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
 trn_term_doc = vec.fit_transform(train)
 test_term_doc = vec.transform(test[column])
 
