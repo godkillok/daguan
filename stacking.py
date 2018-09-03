@@ -34,7 +34,7 @@ column='word_seg'
 train = pd.read_csv('../input_data/train.csv')
 test = pd.read_csv('../input_data/test.csv')
 y=(train["class"]-1).astype(int)
-read=False
+read=True
 if read==False:
     vec = TfidfVectorizer(ngram_range=(1,2),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
     trn_term_doc = vec.fit_transform(train[column])
@@ -47,9 +47,9 @@ if read==False:
 else:
     print('read from .....')
     with open('../input_data/trn_term_doc.pil', 'rb') as f:
-        trn_term_doc=pickle.dump( f)
+        trn_term_doc=pickle.load( f)
     with open('../input_data/test_term_doc.pil', 'rb') as f:
-        test_term_doc=pickle.dump( f)
+        test_term_doc=pickle.load( f)
 
 X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.1, random_state=111)
 print('tttt')
@@ -57,14 +57,16 @@ print('tttt')
 # X_test=X_test.toarray()
 print('to array')
 #创建数据集11
-dataset = Dataset(X_train,y_train,X_test,use_cache=False)
+dataset = Dataset(X_train,y_train,trn_term_doc,use_cache=False)
 #创建RF模型和LR模型1
-model_nb = Classifier(dataset=dataset, estimator=MultinomialNB,name='nb',use_cache=False)
-model_lr = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'dual':True,'n_jobs':-1},name='lr',use_cache=False)
-model_lr2 = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'multi_class':'multinomial','solver':'sag','dual':False,'n_jobs':-1},name='lr2',use_cache=False)
-model_svm = Classifier(dataset=dataset, estimator=svm.SVC, parameters={ 'probability':True},name='svm',use_cache=False)
-model_svc= Classifier(dataset=dataset, estimator=svm.LinearSVC,name='LinearSVC',use_cache=False)
-model_gbdt=Classifier(dataset=dataset, estimator=GradientBoostingClassifier,name="gdbt",parameters={ 'n_estimators':50,'subsample' : 0.6},use_cache=False)
+
+class_use_cache=False
+model_nb = Classifier(dataset=dataset, estimator=MultinomialNB,name='nb',use_cache=class_use_cache)
+model_lr = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'dual':True,'n_jobs':-1},name='lr',use_cache=class_use_cache)
+model_lr2 = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'multi_class':'multinomial','solver':'sag','dual':False,'n_jobs':-1},name='lr2',use_cache=class_use_cache)
+model_svm = Classifier(dataset=dataset, estimator=svm.SVC, parameters={ 'probability':True},name='svm',use_cache=class_use_cache)
+model_svc= Classifier(dataset=dataset, estimator=svm.LinearSVC,name='LinearSVC',use_cache=class_use_cache)
+model_gbdt=Classifier(dataset=dataset, estimator=GradientBoostingClassifier,name="gdbt",parameters={ 'n_estimators':50,'subsample' : 0.6},use_cache=class_use_cache)
 # Stack两个模型mhg
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 print('stack_ds....')

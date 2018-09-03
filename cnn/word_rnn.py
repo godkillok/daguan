@@ -14,9 +14,11 @@ from tensorflow.contrib import rnn
 # sys.setdefaultencoding("utf-8")
 # model_dir2 is the good one embedding size 128
 flags = tf.app.flags
+path='/home/tom/new_data/input_data'
+path='C:/Users/TangGuoping/Downloads'
 flags.DEFINE_string("model_dir", "./model_dir1", "Base directory for the model.")
-flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/input_data/*train.tfrecords", "train file pattern")
-flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/input_data/*eval.tfrecords", "evalue file pattern")
+flags.DEFINE_string("train_file_pattern", "{}/*train.tfrecords".format(path), "train file pattern")
+flags.DEFINE_string("eval_file_pattern", "{}/*eval.tfrecords".format(path), "evalue file pattern")
 flags.DEFINE_float("dropout_rate", 0.8, "Drop out rate")
 flags.DEFINE_float("learning_rate", 0.1, "Learning rate")
 flags.DEFINE_float("decay_rate", 0.7, "Learning rate")
