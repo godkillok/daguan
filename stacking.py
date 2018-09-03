@@ -53,7 +53,7 @@ dataset = Dataset(X_train,y_train,X_test,use_cache=False)
 model_nb = Classifier(dataset=dataset, estimator=MultinomialNB,name='nb',use_cache=False)
 model_lr = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'dual':True,'n_jobs':-1},name='lr',use_cache=False)
 model_svm = Classifier(dataset=dataset, estimator=svm.SVC, parameters={ 'probability':True},name='svm',use_cache=False)
-model_svc= Classifier(dataset=dataset, estimator=svm.LinearSVC,name='LinearSVC')
+model_svc= Classifier(dataset=dataset, estimator=svm.LinearSVC,name='LinearSVC',use_cache=False)
 
 # Stack两个模型mhg
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
