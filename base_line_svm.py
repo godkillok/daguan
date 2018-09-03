@@ -19,7 +19,7 @@ print(train._info_axis)
 print(train.shape)
 #
 #
-# test_id = test["id"].copy()
+test_id = test["id"].copy()
 # vec = TfidfVectorizer(ngram_range=(1,2),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
 # trn_term_doc = vec.fit_transform(train[column])
 # test_term_doc = vec.transform(test[column])
