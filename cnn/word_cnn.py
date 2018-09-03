@@ -174,14 +174,14 @@ def my_model(features, labels, mode, params):
         # conv = tf.layers.batch_normalization(conv, training=(mode == tf.estimator.ModeKeys.TRAIN))
         conv=tf.nn.relu(conv)
 
-        conv = tf.layers.conv2d(
-            conv,
-            filters=FLAGS.num_filters,
-            kernel_size=[filter_size, 1],
-            strides=(1, 1),
-            padding="SAME"
-        )#activation=tf.nn.relu
-        conv = tf.nn.relu(conv)
+        # conv = tf.layers.conv2d(
+        #     conv,
+        #     filters=FLAGS.num_filters,
+        #     kernel_size=[filter_size, 1],
+        #     strides=(1, 1),
+        #     padding="SAME"
+        # )#activation=tf.nn.relu
+        # conv = tf.nn.relu(conv)
         # b = tf.get_variable("b-%s" % filter_size, [FLAGS.num_filters])  # ADD 2017-06-09
         if 'dropout_rate' in params and params['dropout_rate'] > 0.0:
             # h_pool_flat = tf.layers.batch_normalization(h_pool_flat, training=(mode == tf.estimator.ModeKeys.TRAIN))

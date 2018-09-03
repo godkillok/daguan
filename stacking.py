@@ -9,7 +9,7 @@ from sklearn.linear_model import Perceptron
 from xgboost.sklearn import XGBClassifier
 from sklearn import svm
 
-
+import scipy
 from sklearn.metrics import f1_score
 #加载数据集
 from sklearn.datasets import fetch_20newsgroups
@@ -18,7 +18,8 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 import tarfile
 import codecs
-
+import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 archive_path='/home/tom/scikit_learn_data/20news_home/20news-bydate.tar.gz'
 target_dir='/home/tom/scikit_learn_data/20news_home'
 
@@ -28,7 +29,13 @@ target_dir='/home/tom/scikit_learn_data/20news_home'
 data = fetch_20newsgroups()
 X, y = data.data, data.target
 print(len(X))
-X_train, X_test, y_train, y_test =train_test_split(X, y, test_size=0.1, random_state=111)
+X=np.array(X)
+
+vec = TfidfVectorizer(ngram_range=(1,1),min_df=3, max_df=0.8,use_idf=1,smooth_idf=1, sublinear_tf=1)
+trn_term_doc = vec.fit_transform(X)
+X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.1, random_state=111)
+# X_train=X_train.toarray()
+# X_test=X_test.toarray()
 #创建数据集
 dataset = Dataset(X_train,y_train,X_test)
 #创建RF模型和LR模型
