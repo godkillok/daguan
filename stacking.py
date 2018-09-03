@@ -69,9 +69,9 @@ results = stacker.predict()
 
 result_list=list(results)
 
-test_id=list(test[["id"]].copy())
-
-pred_dic={'class':result_list,"id":test_id}
+# test_id=list(test[["id"]].copy())
+#
+# pred_dic={'class':result_list,"id":test_id}
 
 # pd.DataFrame.from_dict(pred_dic)[["id","class"]].to_csv('../output/sub_stack.csv',index=None)
 
