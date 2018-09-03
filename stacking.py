@@ -27,15 +27,21 @@ target_dir='/home/tom/scikit_learn_data/20news_home'
 column='word_seg'
 # tarfile.open(archive_path, "r:gz").extractall(path=target_dir)11
 
-train = pd.read_csv('../input_data/train.csv')
-test = pd.read_csv('../input_data/test.csv')
-y=(train["class"]-1).astype(int)
+# train = pd.read_csv('../input_data/train.csv')
+# test = pd.read_csv('../input_data/test.csv')
+# y=(train["class"]-1).astype(int)
+#
+#
+# vec = TfidfVectorizer(ngram_range=(1,2),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
+# trn_term_doc = vec.fit_transform(train[column])
+# test_term_doc = vec.transform(test[column])
+data = fetch_20newsgroups()
+X, y = data.data, data.target
+print(len(X))
 
 
-vec = TfidfVectorizer(ngram_range=(1,2),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
-trn_term_doc = vec.fit_transform(train[column])
-test_term_doc = vec.transform(test[column])
-
+vec = TfidfVectorizer(ngram_range=(1,1),min_df=3, max_df=0.8,use_idf=1,smooth_idf=1, sublinear_tf=1)
+trn_term_doc = vec.fit_transform(X)
 X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.1, random_state=111)
 print('tttt')
 # X_train=X_train.toarray()
@@ -58,7 +64,19 @@ stack_ds = pipeline.stack(k=10,seed=111)
 print('second layer....')
 stacker = Classifier(dataset=stack_ds, estimator=LogisticRegression,use_cache=False,probability=False)
 results = stacker.predict()
+
+
+
+result_list=list(results)
+
+test_id=list(test[["id"]].copy())
+
+pred_dic={'class':result_list,"id":test_id}
+
+# pd.DataFrame.from_dict(pred_dic)[["id","class"]].to_csv('../output/sub_stack.csv',index=None)
+
 print(accuracy_score(y_test, results))
+
 # 使用10折交叉验证结果
 results10 = stacker.validate(k=5,scorer=accuracy_score)
 print(results10)
