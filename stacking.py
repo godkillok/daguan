@@ -60,7 +60,7 @@ print('to array')
 dataset = Dataset(X_train,y_train,trn_term_doc,use_cache=False)
 #创建RF模型和LR模型1
 
-class_use_cache=True
+class_use_cache=False
 model_nb = Classifier(dataset=dataset, estimator=MultinomialNB,name='nb',use_cache=class_use_cache)
 model_lr = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'dual':True,'n_jobs':-1},name='lr',use_cache=class_use_cache)
 model_lr2 = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'multi_class':'multinomial','solver':'sag','dual':False,'n_jobs':-1},name='lr2',use_cache=class_use_cache)
