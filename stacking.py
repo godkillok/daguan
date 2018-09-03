@@ -50,7 +50,7 @@ model_svm = Classifier(dataset=dataset, estimator=svm.SVC, parameters={ 'probabi
 # model_svc= Classifier(dataset=dataset, estimator=svm.LinearSVC,name='LinearSVC')
 # Stack两个模型mhg
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
-pipeline = ModelsPipeline(model_nb,model_lr)
+pipeline = ModelsPipeline(model_svm,model_nb,model_lr)
 stack_ds = pipeline.stack(k=10,seed=111)
 #第二层使用lr模型stack1
 stacker = Classifier(dataset=stack_ds, estimator=LogisticRegression,use_cache=False,probability=False)
