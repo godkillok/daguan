@@ -87,7 +87,7 @@ model_gbdt=Classifier(dataset=dataset, estimator=GradientBoostingClassifier,name
 # Stack两个模型mhg
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 logging.info('stack_ds....')
-pipeline = ModelsPipeline(model_gbdt)
+pipeline = ModelsPipeline(model_lr,model_svc)
 # pipeline = ModelsPipeline(model_nb),model_nb,model_lr,model_lr2
 stack_ds = pipeline.stack(k=2,seed=111)
 #第二层使用lr模型stack2
