@@ -75,7 +75,7 @@ model_gbdt=Classifier(dataset=dataset, estimator=GradientBoostingClassifier,name
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 logging.info('stack_ds....')
 pipeline = ModelsPipeline(model_svc)
-# pipeline = ModelsPipeline(model_nb)
+# pipeline = ModelsPipeline(model_nb),model_nb,model_lr,model_lr2
 stack_ds = pipeline.stack(k=10,seed=111)
 #第二层使用lr模型stack2
 logging.info('second layer....')
@@ -99,6 +99,6 @@ logging.info(len(result_list))
 logging.info(len(test_id))
 pred_dic={'class':result_list,"id":test_id}
 
-pd.DataFrame.from_dict(pred_dic)[["id","class"]].to_csv('../output/sub_stack.csv',index=None)
+pd.DataFrame.from_dict(pred_dic)[["id","class"]].to_csv('../output/sub_stack2.csv',index=None)
 
 # print(accuracy_score(y_test, results))
