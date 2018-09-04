@@ -22,6 +22,9 @@ import numpy as np
 import pickle
 import pandas as pd
 import logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
+
 from sklearn.ensemble import BaggingClassifier, AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
@@ -46,7 +49,7 @@ if read==False:
     with open('../input_data/test_term_doc.pil','wb') as f:
         pickle.dump(test_term_doc, f)
 else:
-    print('read from .....')
+    logging.info('read from .....')
     with open('../input_data/trn_term_doc.pil', 'rb') as f:
         trn_term_doc=pickle.load( f)
     with open('../input_data/test_term_doc.pil', 'rb') as f:
@@ -70,11 +73,11 @@ model_svc= Classifier(dataset=dataset, estimator=svm.LinearSVC,name='LinearSVC',
 model_gbdt=Classifier(dataset=dataset, estimator=GradientBoostingClassifier,name="gdbt",parameters={ 'n_estimators':50,'subsample' : 0.6},use_cache=class_use_cache)
 # Stack两个模型mhg
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
-print('stack_ds....')
+logging.info('stack_ds....')
 pipeline = ModelsPipeline(model_svc,model_nb,model_lr,model_lr2)
 stack_ds = pipeline.stack(k=10,seed=111)
 #第二层使用lr模型stack2
-print('second layer....')
+logging.info('second layer....')
 stacker = Classifier(dataset=stack_ds, estimator=LogisticRegression,use_cache=False,probability=False)
 results = stacker.predict()
 
