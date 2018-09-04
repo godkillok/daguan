@@ -52,7 +52,7 @@ new_ = pd.read_csv('./cnn/valid_id')
 
 y=(train["class"]-1).astype(int)
 logging.info('loaded data')
-read=False
+read=True
 if read==False:
 
     vec = TfidfVectorizer(ngram_range=(1,3),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1,max_features=3520641)
@@ -67,9 +67,9 @@ if read==False:
         pickle.dump(test_term_doc, f)
 else:
     logging.info('read from .....')
-    with open('../input_data/trn_term_doc.pil', 'rb') as f:
+    with open('../input_data/trn_term_doc_13.pil', 'rb') as f:
         trn_term_doc=pickle.load( f)
-    with open('../input_data/test_term_doc.pil', 'rb') as f:
+    with open('../input_data/test_term_doc_13.pil', 'rb') as f:
         test_term_doc=pickle.load( f)
 
 X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.01, random_state=111)
