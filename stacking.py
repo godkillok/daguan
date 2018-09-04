@@ -114,4 +114,4 @@ pred_dic={'class':result_list,"id":test_id}
 
 pd.DataFrame.from_dict(pred_dic)[["id","class"]].to_csv('../output/sub_stack_nb.csv',index=None)
 
-# print(accuracy_score(y_test, results))
+# print(accuracy_score(y_test, results))1
