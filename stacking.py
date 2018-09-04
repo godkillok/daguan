@@ -21,7 +21,7 @@ import codecs
 import numpy as np
 import pickle
 import pandas as pd
-
+import logging
 from sklearn.ensemble import BaggingClassifier, AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
@@ -30,6 +30,7 @@ target_dir='/home/tom/scikit_learn_data/20news_home'
 
 column='word_seg'
 # tarfile.open(archive_path, "r:gz").extractall(path=target_dir)11
+logging
 
 train = pd.read_csv('../input_data/train.csv')
 test = pd.read_csv('../input_data/test.csv')
@@ -57,7 +58,7 @@ print('tttt')
 # X_test=X_test.toarray()
 print('to array')
 #创建数据集11
-dataset = Dataset(X_train,y_train,trn_term_doc,use_cache=False)
+dataset = Dataset(X_train,y_train,test_term_doc,use_cache=False)
 #创建RF模型和LR模型1
 
 class_use_cache=False
@@ -78,6 +79,12 @@ stacker = Classifier(dataset=stack_ds, estimator=LogisticRegression,use_cache=Fa
 results = stacker.predict()
 
 
+# 使用10折交叉验证结果
+results10 = stacker.validate(k=5,scorer=accuracy_score)
+print(results10)
+
+
+
 
 result_list=list(results)
 
@@ -87,8 +94,4 @@ pred_dic={'class':result_list,"id":test_id}
 
 pd.DataFrame.from_dict(pred_dic)[["id","class"]].to_csv('../output/sub_stack.csv',index=None)
 
-print(accuracy_score(y_test, results))
-
-# 使用10折交叉验证结果
-results10 = stacker.validate(k=5,scorer=accuracy_score)
-print(results10)
+# print(accuracy_score(y_test, results))

@@ -54,7 +54,7 @@ def parse_line_dict(record):
     tokens = text.split(' ')
       # type: int
     if len(fields) == 2:
-        label=valid.get(int(fields[0]))-1
+        label=valid.get(int(fields[0]),1)-1
     else:
         label = int(fields[2]) - 1
     label_class.append(label)
@@ -100,7 +100,7 @@ def per_thouds_lines_dict(result_lines, vocab, path_text, count,flag_name):
             if len(text) != sentence_max_len:
                 raise Exception("error")
             tf_lines.append([text, _id, label])
-
+        print(_id)
     if len(tf_lines)>0:
         write_tfrecords(tf_lines, path_text, count,flag_name)
 
@@ -120,11 +120,11 @@ def generate_tf_dic(path_text):
                 ge=int(field[0])
             except:
                 continue
-            if ge in valid:
-                count += 1
-                result_lines.append(parse_line_dict(line)+[int(field[0])])
-            if count % 20000 == 0 or count == len(lines) - 1:
-                print(count)
+
+            count += 1
+            result_lines.append(parse_line_dict(line)+[int(field[0])])
+            if count % 20000 == 0 or count == len(lines)-1:
+                print('per {}'.format(count))
                 if len(field)>2:
                     print('gg')
                     if count<92277:
@@ -132,7 +132,7 @@ def generate_tf_dic(path_text):
                     else:
                         flag_name = '_teval'
                 else:
-                    flag_name = '_etrain'
+                    flag_name = '_pred'
                 per_thouds_lines_dict(result_lines, vocab, path_text, count,flag_name)
                 result_lines = []
         print(count)
@@ -154,7 +154,7 @@ def write_tfrecords(tf_lines, path_text, count,flag_name):
         _id=data[1]
         example = tf.train.Example(features=tf.train.Features(feature={
             'text': feature_auto(list(text)),
-            # '_id':feature_auto(int(_id)),
+            '_id':feature_auto(int(_id)),
             'label': feature_auto(int(label))
         }))
 
