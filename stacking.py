@@ -51,12 +51,14 @@ new_ = pd.read_csv('./cnn/valid_id')
 # print(train.shape)
 
 y=(train["class"]-1).astype(int)
+logging.info('loaded data')
 read=False
 if read==False:
+
     vec = TfidfVectorizer(ngram_range=(1,3),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1,max_features=3520641)
 
     trn_term_doc = vec.fit_transform(train[column])
-    print(len(vec.vocabulary_))
+    logging.info(len(vec.vocabulary_))
     test_term_doc = vec.transform(test[column])
     print('write to  .....')
     with open('../input_data/trn_term_doc_13.pil','wb') as f:
