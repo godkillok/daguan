@@ -56,7 +56,7 @@ if read==False:
     vec = TfidfVectorizer(ngram_range=(1,2),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
 
     trn_term_doc = vec.fit_transform(train[column])
-    print(len(vec.vocabulary))
+    print(len(vec.vocabulary_))
     test_term_doc = vec.transform(test[column])
     print('write to  .....')
     with open('../input_data/trn_term_doc_12.pil','wb') as f:
