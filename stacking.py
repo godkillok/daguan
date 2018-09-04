@@ -83,7 +83,7 @@ results = stacker.predict()
 
 
 # 使用10折交叉验证结果
-results10 = stacker.validate(k=5,scorer=accuracy_score)
+results10 = stacker.validate(k=3,scorer=accuracy_score)
 print(results10)
 
 
