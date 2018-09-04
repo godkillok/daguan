@@ -41,14 +41,14 @@ new_ = pd.read_csv('./cnn/valid_id')
 
 
 #2
-new_=pd.merge(new_, test, how='inner', on=['id', 'id'])
-print('merge_before')
-print(train._info_axis)
-print(train.shape)
-train = train.append(new_)
-print('merge_after')
-print(train._info_axis)
-print(train.shape)
+# new_=pd.merge(new_, test, how='inner', on=['id', 'id'])
+# print('merge_before')
+# print(train._info_axis)
+# print(train.shape)
+# train = train.append(new_)
+# print('merge_after')
+# print(train._info_axis)
+# print(train.shape)
 
 y=(train["class"]-1).astype(int)
 read=True
