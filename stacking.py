@@ -40,7 +40,7 @@ test = pd.read_csv('../input_data/test.csv')
 new_ = pd.read_csv('./cnn/valid_id')
 
 
-#
+#1
 new_=pd.merge(new_, test, how='inner', on=['id', 'id'])
 print('merge_before')
 print(train._info_axis)
