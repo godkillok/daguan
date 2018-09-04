@@ -92,7 +92,7 @@ pipeline = ModelsPipeline(model_gbdt)
 stack_ds = pipeline.stack(k=2,seed=111)
 #第二层使用lr模型stack2
 logging.info('second layer....')
-stacker = Classifier(dataset=stack_ds, estimator=svm.LinearSVC,use_cache=False,probability=False)
+stacker = Classifier(dataset=stack_ds, estimator=GradientBoostingClassifier,use_cache=False,probability=False)
 results = stacker.predict()
 
 
@@ -112,6 +112,6 @@ logging.info(len(result_list))
 logging.info(len(test_id))
 pred_dic={'class':result_list,"id":test_id}
 
-pd.DataFrame.from_dict(pred_dic)[["id","class"]].to_csv('../output/sub_stack_nb.csv',index=None)
+pd.DataFrame.from_dict(pred_dic)[["id","class"]].to_csv('../output/sub_stack_nb2.csv',index=None)
 
 # print(accuracy_score(y_test, results))1
