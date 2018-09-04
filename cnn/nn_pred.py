@@ -102,7 +102,7 @@ def pred_input_fn(filenames, shuffle_buffer_size,shuffle=True,repeat=0):
     print(dataset.output_shapes)
     return dataset
 
-def pred_per_file(file_path):
+def pred_per_file(file_path,my_model):
 
     input_fn_for_pred = lambda: pred_input_fn(file_path, shuffle_buffer_size=0,shuffle=False,repeat=1)
     json_path = os.path.join(FLAGS.data_dir, 'dataset_params.json')
@@ -153,7 +153,7 @@ def real_one(input_filename):
     return label_list,id_list
 
 
-def pred(unused_argv):
+def pred(my_model):
     import re
     import numpy as np
     import pandas as pd
@@ -172,7 +172,7 @@ def pred(unused_argv):
                 print(file)
                 file_path = os.path.join(root, file)
                 # file_path='/home/tom/new_data/input_data/train_shuf_100000_11000_eval.tfrecords'
-                label,prob=pred_per_file(file_path)
+                label,prob=pred_per_file(file_path,my_model)
                 label_list,id_list=real_one(file_path)
                 for pl,_lb,_id in zip(prob,label_list,id_list):
                     dic[_id].append(pl)
@@ -248,5 +248,5 @@ def pred_eval(unused_argv):
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
-    tf.app.run(main=pred)
+    tf.app.run(main=pred(my_model))
 
