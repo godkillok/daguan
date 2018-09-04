@@ -6,7 +6,7 @@ import numpy as np
 import re
 import os
 import json
-
+from cnn import nn_pred
 # for python 22.x1
 # import sys
 # reload(sys)
@@ -53,20 +53,6 @@ def parse_exmp(serialized_example):
         serialized_example,
         features={
             "text": tf.FixedLenFeature([FLAGS.sentence_max_len], tf.int64),
-            # "text": tf.FixedLenSequenceFeature([], tf.int64,allow_missing=True),
-            "label": tf.FixedLenFeature([], tf.int64)
-        })
-
-    labels = feats.pop('label')
-
-    return feats, labels
-
-def parse_exmp2(serialized_example):
-    feats = tf.parse_single_example(
-        serialized_example,
-        features={
-            "text": tf.FixedLenFeature([FLAGS.sentence_max_len], tf.int64),
-            "_id": tf.FixedLenFeature([], tf.int64),
             # "text": tf.FixedLenSequenceFeature([], tf.int64,allow_missing=True),
             "label": tf.FixedLenFeature([], tf.int64)
         })
@@ -338,73 +324,9 @@ def main(unused_argv):
     print("evalue eval set")
     classifier.evaluate(input_fn=input_fn_for_eval,steps=100)
     print("after train and evaluate")
-json_path = os.path.join(FLAGS.data_dir, 'dataset_params.json')
-with open(json_path) as f:
-    config = json.load(f)
-
-params = {
-    'vocab_size': config["vocab_size"],
-    'filter_sizes': list(map(int, FLAGS.filter_sizes.split(','))),
-    'learning_rate': FLAGS.learning_rate,
-    'dropout_rate': FLAGS.dropout_rate
-}
-
-word_embedding = assign_pretrained_word_embedding(params)
-
-def pred_per_file(file_path):
-
-    input_fn_for_pred = lambda: pred_input_fn(file_path, shuffle_buffer_size=0,shuffle=False,repeat=1)
-    json_path = os.path.join(FLAGS.data_dir, 'dataset_params.json')
-    with open(json_path) as f:
-        config = json.load(f)
-    params = {
-        'vocab_size': config["vocab_size"],
-        'filter_sizes': list(map(int, FLAGS.filter_sizes.split(','))),
-        'learning_rate': FLAGS.learning_rate,
-        'dropout_rate': FLAGS.dropout_rate
-    }
-
-    params['word_embedding']=word_embedding
-    classifier = tf.estimator.Estimator(
-        model_fn=my_model,
-        params=params,
-        config=tf.estimator.RunConfig(keep_checkpoint_max=2,model_dir=FLAGS.model_dir, save_checkpoints_steps=FLAGS.save_checkpoints_steps)
-    )
-
-    eval_spec = classifier.predict(input_fn=input_fn_for_pred)
-
-    count = 0
-
-    result=[]
-    label=[]
-    prob=[]
-    for e in eval_spec:
-        count += 1
-        result.append((file_path,count,int(list(e.get('classes', ''))[0])))
-        label.append(int(list(e.get('classes', ''))[0]))
-        prob.append(e.get('probabilities'))
-    # for r in result:
-    #     print(r)
-
-    return label,prob
-
-def real_one(input_filename):
-    label_list=[]
-    id_list=[]
-    for serialized_example in tf.python_io.tf_record_iterator(input_filename):
-        # Get serialized example from file
-        example = tf.train.Example()
-        example.ParseFromString(serialized_example)
-        label = example.features.feature["label"]
-        features = example.features.feature["_id"]
-        label_list.append(label.int64_list.value[0])
-        id_list.append(features.int64_list.value[0])
-    return label_list,id_list
-
-
 
 
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
-    tf.app.run(main=pred)
+    tf.app.run(main=nn_pred.pred(my_model,FLAGS,'cnn1'))

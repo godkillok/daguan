@@ -7,7 +7,7 @@ import re
 import os
 import json
 from tensorflow.contrib import rnn
-
+from cnn import nn_pred
 # for python 22.x
 # import sys
 # reload(sys)
@@ -15,10 +15,13 @@ from tensorflow.contrib import rnn
 # model_dir2 is the good one embedding size 128
 flags = tf.app.flags
 path='/home/tom/new_data/input_data'
-path='C:/Users/TangGuoping/Downloads'
-flags.DEFINE_string("model_dir", "./model_dir1", "Base directory for the model.")
+# path='C:/Users/TangGuoping/Downloads'
+flags.DEFINE_string("model_dir", "/media/tom/软件/model_dir2", "Base directory for the model.")
 flags.DEFINE_string("train_file_pattern", "{}/*train.tfrecords".format(path), "train file pattern")
 flags.DEFINE_string("eval_file_pattern", "{}/*eval.tfrecords".format(path), "evalue file pattern")
+flags.DEFINE_string("pred_eval_file_pattern", "/home/tom/new_data/input_data/*teval.tfrecords", "evalue file pattern")
+flags.DEFINE_string("pred_file_pattern", "/home/tom/new_data/input_data/*pred.tfrecords", "evalue file pattern")
+
 flags.DEFINE_float("dropout_rate", 0.8, "Drop out rate")
 flags.DEFINE_float("learning_rate", 0.1, "Learning rate")
 flags.DEFINE_float("decay_rate", 0.7, "Learning rate")
@@ -43,7 +46,7 @@ flags.DEFINE_string("test_dir", " /data/tanggp/deeplearning-master/word_cnn/dbpe
 flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated list of number of window size in each filter")
 flags.DEFINE_string("pad_word", "<pad>", "used for pad sentence")
 flags.DEFINE_string("path_vocab", "/home/tom/new_data/input_data/words.txt", "used for word index")
-flags.DEFINE_string("fast_text", "/home/tom/new_data/super.bin", "used for word index")
+flags.DEFINE_string("fast_text", "/home/tom/new_data/super_more.bin", "used for word index")
 FLAGS = flags.FLAGS
 
 
@@ -228,32 +231,7 @@ def main(unused_argv):
     print("after train and evaluate")
 
 
-def pred(unused_argv):
-    path_eval = os.path.join(FLAGS.data_dir, 'test.csv')
-    path_words = os.path.join(FLAGS.data_dir, 'words.txt')
-    input_fn_for_pred = lambda: input_fn(path_eval, path_words, 0, 100)
-    json_path = os.path.join(FLAGS.data_dir, 'dataset_params.json')
-    with open(json_path) as f:
-        config = json.load(f)
-
-    classifier = tf.estimator.Estimator(
-        model_fn=my_model,
-        params={
-            'vocab_size': config["vocab_size"],
-            'filter_sizes': list(map(int, FLAGS.filter_sizes.split(','))),
-            'learning_rate': FLAGS.learning_rate,
-            'dropout_rate': FLAGS.dropout_rate
-        },
-        config=tf.estimator.RunConfig(model_dir=FLAGS.model_dir, save_checkpoints_steps=FLAGS.save_checkpoints_steps)
-    )
-    eval_spec = classifier.predict(input_fn=input_fn_for_pred)
-    count = 0
-    for e in eval_spec:
-        count += 1
-        print(e.get('classes', ''))
-    print(count)
-
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
-    tf.app.run(main=main)
+    tf.app.run(main=nn_pred.pred(my_model, FLAGS,'rnn1'))

@@ -7,40 +7,10 @@ import re
 import os
 import json
 flags = tf.app.flags
-flags.DEFINE_string("model_dir", "/media/tom/软件/model_dir2", "Base directory for the model.")
-flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/input_data/*train.tfrecords", "train file pattern")
-flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/input_data/*eval.tfrecords", "evalue file pattern")
-flags.DEFINE_string("pred_eval_file_pattern", "/home/tom/new_data/input_data/*teval.tfrecords", "evalue file pattern")
 
-flags.DEFINE_string("pred_file_pattern", "/home/tom/new_data/input_data/*pred.tfrecords", "evalue file pattern")
-
-flags.DEFINE_float("dropout_rate", 0.5, "Drop out rate")
-flags.DEFINE_float("learning_rate", 0.3, "Learning rate")
-flags.DEFINE_float("decay_rate", 0.8, "L+earning rate")
-flags.DEFINE_integer("embedding_size", 100, "embedding size")
-flags.DEFINE_integer("num_filters", 200, "number of filters")
-flags.DEFINE_integer("num_classes", 19, "number of classes")
-flags.DEFINE_integer("num_parallel_readers", 4, "number of classes")
-flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size")
-flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
-flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
-flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 40010,
-                     "Number of (global) training steps to perform")
-flags.DEFINE_integer("decay_steps", 5000,
-                     "Number of (global) training steps to perform")
-flags.DEFINE_integer("train_epoch", 1,
-                     "Number of (global) training steps to perform")
-flags.DEFINE_string("data_dir", "/home/tom/new_data/input_data/",
-                    "Directory containing the dataset")
-flags.DEFINE_string("test_dir", " /data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/test*",
-                    "Directory containing the dataset")
-flags.DEFINE_string("filter_sizes", "2,3,4,5", "Comma-separated list of number of window size in each filter")
-flags.DEFINE_string("pad_word", "<pad>", "used for pad sentence")
-flags.DEFINE_string("path_vocab", "/home/tom/new_data/input_data/words.txt", "used for word index")
-flags.DEFINE_string("fast_text", "/home/tom/new_data/super_more.bin", "used for word index")
 FLAGS = flags.FLAGS
-
+config =''
+word_embedding=''
 def assign_pretrained_word_embedding(params):
     print("using pre-trained word emebedding.started.word2vec_model_path:",FLAGS.fast_text)
     import fastText as ft
@@ -71,17 +41,35 @@ def assign_pretrained_word_embedding(params):
     print("word. exists embedding:", count_exist, " ;word not exist embedding:", count_not_exist)
     print("using pre-trained word emebedding.ended...")
     return word_embedding_final
-json_path = os.path.join(FLAGS.data_dir, 'dataset_params.json')
-with open(json_path) as f:
-    config = json.load(f)
-params = {
-    'vocab_size': config["vocab_size"],
-    'filter_sizes': list(map(int, FLAGS.filter_sizes.split(','))),
-    'learning_rate': FLAGS.learning_rate,
-    'dropout_rate': FLAGS.dropout_rate
-}
 
-word_embedding = assign_pretrained_word_embedding(params)
+def ini():
+    json_path = os.path.join(FLAGS.data_dir, 'dataset_params.json')
+    global config
+    with open(json_path) as f:
+        config = json.load(f)
+    params = {
+        'vocab_size': config["vocab_size"],
+        'filter_sizes': list(map(int, FLAGS.filter_sizes.split(','))),
+        'learning_rate': FLAGS.learning_rate,
+        'dropout_rate': FLAGS.dropout_rate
+    }
+    global word_embedding
+    word_embedding = assign_pretrained_word_embedding(params)
+
+def parse_exmp2(serialized_example):
+    feats = tf.parse_single_example(
+        serialized_example,
+        features={
+            "text": tf.FixedLenFeature([FLAGS.sentence_max_len], tf.int64),
+            "_id": tf.FixedLenFeature([], tf.int64),
+            # "text": tf.FixedLenSequenceFeature([], tf.int64,allow_missing=True),
+            "label": tf.FixedLenFeature([], tf.int64)
+        })
+
+    labels = feats.pop('label')
+
+    return feats, labels
+
 def pred_input_fn(filenames, shuffle_buffer_size,shuffle=True,repeat=0):
     # dataset = tf.data.TFRecordDataset(filenames) filename is a string
     print('tfrecord')
@@ -153,7 +141,10 @@ def real_one(input_filename):
     return label_list,id_list
 
 
-def pred(my_model):
+def pred(my_model,fg,out_name):
+    ini()
+    global FLAGS
+    FLAGS=fg
     import re
     import numpy as np
     import pandas as pd
@@ -186,12 +177,12 @@ def pred(my_model):
     max_id=np.argmax(prob_np,1)+1
     _idx=[i for i in range((max(dic.keys())+1))]
     mx_id_list=list(max_id)
-    np.save('../../output/rnn.np',prob_np)
+    np.save('../../output/{}.np'.format(out_name),prob_np)
     pd_dic={'id':_idx,
      'class':mx_id_list
      }
 
-    pd.DataFrame.from_dict(pd_dic)[["id","class"]].to_csv('../../output/sub_rnn.csv',index=None)
+    pd.DataFrame.from_dict(pd_dic)[["id","class"]].to_csv('../../output/sub_{}.csv'.format(out_name),index=None)
 
 def pred_eval(unused_argv):
     import re
@@ -248,5 +239,5 @@ def pred_eval(unused_argv):
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
-    tf.app.run(main=pred(my_model))
+    tf.app.run(main=pred(my_model,fg,out_name))
 
