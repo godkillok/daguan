@@ -33,26 +33,39 @@ target_dir='/home/tom/scikit_learn_data/20news_home'
 
 column='word_seg'
 # tarfile.open(archive_path, "r:gz").extractall(path=target_dir)11
-logging
+
 
 train = pd.read_csv('../input_data/train.csv')
 test = pd.read_csv('../input_data/test.csv')
+new_ = pd.read_csv('./cnn/valid_id')
+
+
+#
+new_=pd.merge(new_, test, how='inner', on=['id', 'id'])
+print('merge_before')
+print(train._info_axis)
+print(train.shape)
+train = train.append(new_)
+print('merge_after')
+print(train._info_axis)
+
+
 y=(train["class"]-1).astype(int)
-read=True
+read=False
 if read==False:
     vec = TfidfVectorizer(ngram_range=(1,2),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
     trn_term_doc = vec.fit_transform(train[column])
     test_term_doc = vec.transform(test[column])
     print('write to  .....')
-    with open('../input_data/trn_term_doc.pil','wb') as f:
+    with open('../input_data/trn_term_doc_more.pil','wb') as f:
         pickle.dump(trn_term_doc, f)
-    with open('../input_data/test_term_doc.pil','wb') as f:
+    with open('../input_data/test_term_doc_more.pil','wb') as f:
         pickle.dump(test_term_doc, f)
 else:
     logging.info('read from .....')
-    with open('../input_data/trn_term_doc.pil', 'rb') as f:
+    with open('../input_data/trn_term_doc_more.pil', 'rb') as f:
         trn_term_doc=pickle.load( f)
-    with open('../input_data/test_term_doc.pil', 'rb') as f:
+    with open('../input_data/test_term_doc_more.pil', 'rb') as f:
         test_term_doc=pickle.load( f)
 
 X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.1, random_state=111)
