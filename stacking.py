@@ -52,7 +52,7 @@ new_ = pd.read_csv('./cnn/valid_id')
 
 y=(train["class"]-1).astype(int)
 logging.info('loaded data')
-read=False
+read=True
 if read==False:
 
     vec = TfidfVectorizer(ngram_range=(1,3),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1,max_features=3520641)
@@ -93,7 +93,7 @@ model_gbdt=Classifier(dataset=dataset, estimator=GradientBoostingClassifier,name
 logging.info('stack_ds....')
 pipeline = ModelsPipeline(model_lr,model_svc)
 # pipeline = ModelsPipeline(model_nb),model_nb,model_lr,model_lr2
-stack_ds = pipeline.stack(k=2,seed=111)
+stack_ds = pipeline.stack(k=8,seed=111)
 #第二层使用lr模型stack2
 logging.info('second layer....')
 stacker = Classifier(dataset=stack_ds, estimator=GradientBoostingClassifier,use_cache=False,probability=False)
