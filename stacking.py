@@ -84,7 +84,7 @@ results = stacker.predict()
 
 # 使用10折交叉验证结果
 results10 = stacker.validate(k=3,scorer=accuracy_score)
-print(results10)
+logging.info(results10)
 
 
 
@@ -93,6 +93,9 @@ result_list=list(results)
 
 test_id=list(test[["id"]].copy())
 
+logging.info('len of ....')
+logging.info(len(result_list))
+logging.info(len(test_id))
 pred_dic={'class':result_list,"id":test_id}
 
 pd.DataFrame.from_dict(pred_dic)[["id","class"]].to_csv('../output/sub_stack.csv',index=None)
