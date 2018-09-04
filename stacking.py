@@ -93,7 +93,7 @@ logging.info(results10)
 result_list=list(results)
 
 test_id=list(test[["id"]].copy())
-
+test_id=[i  for i in  range(len(result_list))]
 logging.info('len of ....')
 logging.info(len(result_list))
 logging.info(len(test_id))
