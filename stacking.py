@@ -52,7 +52,7 @@ new_ = pd.read_csv('./cnn/valid_id')
 
 y=(train["class"]-1).astype(int)
 logging.info('loaded data')
-read=True
+read=False
 if read==False:
 
     vec = TfidfVectorizer(ngram_range=(1,3),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1,max_features=3520641)
