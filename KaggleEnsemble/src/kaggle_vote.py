@@ -2,7 +2,7 @@ from collections import defaultdict, Counter
 from glob import glob
 import sys
 import re
-
+import math
 glob_files = sys.argv[1]
 loc_outfile = sys.argv[2]
 weights_strategy = "uniform"
@@ -13,6 +13,17 @@ def kaggle_bag(glob_files, loc_outfile, method="average", weights="uniform"):
   pattern = re.compile(r"(.)*_[w|W](\d*)_[.]*")
   if method == "average":
     scores = defaultdict(list)
+  weight_list = [1] * len(glob(glob_files))
+  for i, glob_file in enumerate(glob(glob_files)):
+      print("parsing: {}".format(glob_file))
+      if weights == "weighted":
+          weight = pattern.match(glob_file)
+          weight_list[i] = weight_list[i] * int(weight.group(2))
+  exp_weithgt=[1] * len(glob(glob_files))
+  for  i in range(len(weight_list)):
+      exp_weithgt[i]=math.exp(weight_list[i])
+
+
   with open(loc_outfile,"w") as outfile:
     #weight_list may be usefull using a different method
     weight_list = [1]*len(glob(glob_files))
