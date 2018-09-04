@@ -64,7 +64,7 @@ print('to array')
 dataset = Dataset(X_train,y_train,test_term_doc,use_cache=False)
 #创建RF模型和LR模型1
 
-class_use_cache=False
+class_use_cache=True
 model_nb = Classifier(dataset=dataset, estimator=MultinomialNB,name='nb',use_cache=class_use_cache)
 model_lr = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'dual':True,'n_jobs':-1},name='lr',use_cache=class_use_cache)
 model_lr2 = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'multi_class':'multinomial','solver':'sag','dual':False,'n_jobs':-1},name='lr2',use_cache=class_use_cache)
@@ -74,7 +74,7 @@ model_gbdt=Classifier(dataset=dataset, estimator=GradientBoostingClassifier,name
 # Stack两个模型mhg
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 logging.info('stack_ds....')
-pipeline = ModelsPipeline(model_svc,model_nb,model_lr,model_lr2)
+pipeline = ModelsPipeline(model_svc)
 # pipeline = ModelsPipeline(model_nb)
 stack_ds = pipeline.stack(k=10,seed=111)
 #第二层使用lr模型stack2
@@ -90,7 +90,7 @@ logging.info(results10)
 
 
 
-result_list=list(results)
+result_list=list(results+1)
 
 test_id=list(test[["id"]].copy())
 test_id=[i  for i in  range(len(result_list))]
