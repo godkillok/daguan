@@ -63,12 +63,12 @@ if read==False:
         pickle.dump(test_term_doc, f)
 else:
     logging.info('read from .....')
-    with open('../input_data/trn_term_doc_more.pil', 'rb') as f:
+    with open('../input_data/trn_term_doc.pil', 'rb') as f:
         trn_term_doc=pickle.load( f)
-    with open('../input_data/test_term_doc_more.pil', 'rb') as f:
+    with open('../input_data/test_term_doc.pil', 'rb') as f:
         test_term_doc=pickle.load( f)
 
-X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.1, random_state=111)
+X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.01, random_state=111)
 print('tttt')
 # X_train=X_train.toarray()
 # X_test=X_test.toarray()
@@ -87,12 +87,12 @@ model_gbdt=Classifier(dataset=dataset, estimator=GradientBoostingClassifier,name
 # Stack两个模型mhg
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 logging.info('stack_ds....')
-pipeline = ModelsPipeline(model_nb)
+pipeline = ModelsPipeline(svm.SVC,model_lr)
 # pipeline = ModelsPipeline(model_nb),model_nb,model_lr,model_lr2
-stack_ds = pipeline.stack(k=10,seed=111)
+stack_ds = pipeline.stack(k=5,seed=111)
 #第二层使用lr模型stack2
 logging.info('second layer....')
-stacker = Classifier(dataset=stack_ds, estimator=LogisticRegression,use_cache=False,probability=False)
+stacker = Classifier(dataset=stack_ds, estimator=svm.LinearSVC,use_cache=False,probability=False)
 results = stacker.predict()
 
 
