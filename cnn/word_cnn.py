@@ -329,4 +329,5 @@ def main(unused_argv):
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
-    tf.app.run(main=nn_pred.pred(my_model,FLAGS,'cnn1'))
+    # tf.app.run(main=main)
+    tf.app.run(main=nn_pred.pred(my_model,FLAGS,'cnn2'))

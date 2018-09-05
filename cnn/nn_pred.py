@@ -183,7 +183,7 @@ def pred(my_model,fg,out_name):
      }
 
     pd.DataFrame.from_dict(pd_dic)[["id","class"]].to_csv('../../output/sub_{}.csv'.format(out_name),index=None)
-
+    print('done!!!')
 def pred_eval(unused_argv):
     import re
     acc_list=[]
