@@ -52,7 +52,7 @@ new_ = pd.read_csv('./cnn/valid_id')
 
 y=(train["class"]-1).astype(int)
 logging.info('loaded data')
-read=False
+read=True
 if read==False:
 
     vec = CountVectorizer(ngram_range=(1,3),min_df=3, max_df=0.9,max_features=3520641)
@@ -67,12 +67,19 @@ if read==False:
         pickle.dump(test_term_doc, f)
 else:
     logging.info('read from .....')
-    with open('../input_data/trn_term_doc_wc_13.pil', 'rb') as f:
+    with open('../input_data/trn_term_doc_13.pil', 'rb') as f:
         trn_term_doc=pickle.load( f)
-    with open('../input_data/test_term_doc_wc_13.pil', 'rb') as f:
+    with open('../input_data/test_term_doc_13.pil', 'rb') as f:
         test_term_doc=pickle.load( f)
 
+    with open('../input_data/trn_term_doc_wc_13.pil', 'rb') as f:
+        trn_term_doc_wc=pickle.load( f)
+    with open('../input_data/test_term_doc_wc_13.pil', 'rb') as f:
+        test_term_doc_wc=pickle.load( f)
+
 X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.01, random_state=111)
+
+X_train_wc, X_test_wc, y_train_wc, y_test_wc =train_test_split(trn_term_doc_wc, y, test_size=0.01, random_state=111)
 print('tttt')
 # X_train=X_train.toarray()
 # X_test=X_test.toarray()
@@ -80,9 +87,10 @@ print('to array')
 #创建数据集11
 dataset = Dataset(X_train,y_train,test_term_doc,use_cache=False)
 #创建RF模型和LR模型1
+dataset_wc = Dataset(X_train_wc,y_train_wc,test_term_doc_wc,use_cache=False)
 
 class_use_cache=False
-model_nb = Classifier(dataset=dataset, estimator=MultinomialNB,name='nb',use_cache=class_use_cache)
+model_nb = Classifier(dataset=dataset_wc, estimator=MultinomialNB,name='nb',use_cache=class_use_cache)
 model_lr = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'dual':True,'n_jobs':-1},name='lr',use_cache=class_use_cache)
 model_lr2 = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'multi_class':'multinomial','solver':'sag','dual':False,'n_jobs':-1},name='lr2',use_cache=class_use_cache)
 model_svm = Classifier(dataset=dataset, estimator=svm.SVC, parameters={ 'probability':True},name='svm',use_cache=class_use_cache)
@@ -91,7 +99,7 @@ model_gbdt=Classifier(dataset=dataset, estimator=GradientBoostingClassifier,name
 # Stack两个模型mhg
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 logging.info('stack_ds....')
-pipeline = ModelsPipeline(model_nb)
+pipeline = ModelsPipeline(model_nb,model_lr,model_svc)
 # pipeline = ModelsPipeline(model_nb),model_nb,model_lr,model_lr2
 stack_ds = pipeline.stack(k=8,seed=111)
 #第二层使用lr模型stack2
