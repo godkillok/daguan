@@ -35,7 +35,7 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import classification_report
 from sklearn.pipeline import make_pipeline
 from xgboost.sklearn import XGBClassifier
-
+from sklearn.feature_selection import SelectKBest, chi2
 import pandas as pd
 import numpy as np
 from sklearn.externals import joblib
@@ -57,9 +57,15 @@ test_id = test["id"].copy()
 vec = TfidfVectorizer(ngram_range=(1,2),min_df=0.01, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1)
 X_train = vec.fit_transform(train[column])
 X_test = vec.transform(test[column])
+
+
+
 fid0=open('baseline.csv','w')
 
 y_train=(train["class"]-1).astype(int)
+ch2 = SelectKBest(chi2, k=1520641)
+X_train = ch2.fit_transform(X_train, y_train)
+X_test = ch2.transform(X_test)
 
 X_train, X_train_test, y_train, y_train_test = train_test_split(X_train,
                                                             y_train,
