@@ -99,24 +99,17 @@ model_gbdt=Classifier(dataset=dataset, estimator=GradientBoostingClassifier,name
 # Stack两个模型mhg
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 logging.info('stack_ds....')
-pipeline = ModelsPipeline(model_nb,model_lr,model_svc)
+pipeline = ModelsPipeline(model_nb,model_lr)
 # pipeline = ModelsPipeline(model_nb),model_nb,model_lr,model_lr2
 stack_ds = pipeline.stack(k=8,seed=111)
 #第二层使用lr模型stack2
 logging.info('second layer....')
 stacker = Classifier(dataset=stack_ds, estimator=svm.LinearSVC,use_cache=False,probability=False)
 results = stacker.predict()
-
-
 # 使用10折交叉验证结果
 results10 = stacker.validate(k=10,scorer=accuracy_score)
 logging.info(results10)
-
-
-
-
 result_list=list(results+1)
-
 test_id=list(test[["id"]].copy())
 test_id=[i  for i in  range(len(result_list))]
 logging.info('len of ....')
