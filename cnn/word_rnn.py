@@ -7,7 +7,7 @@ import re
 import os
 import json
 from tensorflow.contrib import rnn
-from cnn import nn_pred
+# from cnn import nn_pred
 # for python 22.x
 # import sys
 # reload(sys)
@@ -23,7 +23,7 @@ flags.DEFINE_string("pred_eval_file_pattern", "/home/tom/new_data/input_data/*te
 flags.DEFINE_string("pred_file_pattern", "/home/tom/new_data/input_data/*pred.tfrecords", "evalue file pattern")
 
 flags.DEFINE_float("dropout_rate", 0.8, "Drop out rate")
-flags.DEFINE_float("learning_rate", 0.1, "Learning rate")
+flags.DEFINE_float("learning_rate", 0.8, "Learning rate")
 flags.DEFINE_float("decay_rate", 0.7, "Learning rate")
 flags.DEFINE_integer("embedding_size", 100, "embedding size")
 flags.DEFINE_integer("num_filters", 100, "number of filters")
@@ -33,7 +33,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size"
 flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
 flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 60000,
+flags.DEFINE_integer("train_steps", 40000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("decay_steps", 5000,
                      "Number of (global) training steps to perform")
@@ -197,7 +197,7 @@ def main(unused_argv):
     classifier = tf.estimator.Estimator(
         model_fn=my_model,
         params=params,
-        config=tf.estimator.RunConfig(model_dir=FLAGS.model_dir, save_checkpoints_steps=FLAGS.save_checkpoints_steps)
+        config=tf.estimator.RunConfig(model_dir=FLAGS.model_dir, keep_checkpoint_max=2,save_checkpoints_steps=FLAGS.save_checkpoints_steps)
 
     )
 
@@ -234,4 +234,5 @@ def main(unused_argv):
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
-    tf.app.run(main=nn_pred.pred(my_model, FLAGS,'rnn1'))
+    tf.app.run(main=main)
+    # tf.app.run(main=nn_pred.pred(my_model, FLAGS,'rnn3'))

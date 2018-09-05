@@ -16,7 +16,7 @@ from tensorflow.contrib import rnn
 flags = tf.app.flags
 path='/home/tom/new_data/input_data'
 # path='C:/Users/TangGuoping/Downloads'
-flags.DEFINE_string("model_dir", "/media/tom/软件/model_dir3", "Base directory for the model.")
+flags.DEFINE_string("model_dir", "/media/tom/软件/model_dir2", "Base directory for the model.")
 flags.DEFINE_string("train_file_pattern", "{}/*train.tfrecords".format(path), "train file pattern")
 flags.DEFINE_string("eval_file_pattern", "{}/*eval.tfrecords".format(path), "evalue file pattern")
 flags.DEFINE_string("pred_eval_file_pattern", "/home/tom/new_data/input_data/*teval.tfrecords", "evalue file pattern")
@@ -33,7 +33,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size"
 flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
 flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 20000,
+flags.DEFINE_integer("train_steps", 30000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("decay_steps", 5000,
                      "Number of (global) training steps to perform")
@@ -145,10 +145,8 @@ def my_model(features, labels, mode, params):
     print("output_rnn_last:", output_rnn_last)  # <tf.Tensor 'strided_slice:0' shape=(?, 200) dtype=float32>
     # 4. logits(use linear layer)
 
-    sentence2=tf.reduce_mean(sentence,axis=1)
 
-    output_rnn_last1=tf.concat([output_rnn_last,sentence2], axis=1)
-    logits = tf.layers.dense(output_rnn_last1, FLAGS.num_classes, activation=None)
+    logits = tf.layers.dense(output_rnn_last, FLAGS.num_classes, activation=None)
 
     # learning_rate = tf.train.exponential_decay(params['learning_rate'], tf.train.get_global_step(), FLAGS.decay_steps,
     #                                            FLAGS.decay_rate, staircase=True)
@@ -199,7 +197,7 @@ def main(unused_argv):
     classifier = tf.estimator.Estimator(
         model_fn=my_model,
         params=params,
-        config=tf.estimator.RunConfig(model_dir=FLAGS.model_dir, keep_checkpoint_max=2,save_checkpoints_steps=FLAGS.save_checkpoints_steps)
+        config=tf.estimator.RunConfig(model_dir=FLAGS.model_dir, save_checkpoints_steps=FLAGS.save_checkpoints_steps)
 
     )
 
@@ -237,3 +235,4 @@ def main(unused_argv):
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
     tf.app.run(main=main)
+    # tf.app.run(main=nn_pred.pred(my_model, FLAGS,'rnn2'))
