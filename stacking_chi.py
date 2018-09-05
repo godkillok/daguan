@@ -91,7 +91,7 @@ print('tttt')
 # X_train=X_train.toarray()
 # X_test=X_test.toarray()
 print('to array')
-#创建数据集11
+#创建数据集111
 dataset = Dataset(X_train,y_train,test_term_doc,use_cache=False)
 #创建RF模型和LR模型1
 # dataset_wc = Dataset(X_train_wc,y_train_wc,test_term_doc_wc,use_cache=False)
