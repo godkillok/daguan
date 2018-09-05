@@ -22,6 +22,7 @@ import numpy as np
 import pickle
 import pandas as pd
 import logging
+from sklearn.neighbors import KNeighborsClassifier
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 
@@ -95,7 +96,7 @@ model_lr = Classifier(dataset=dataset, estimator=LogisticRegression, parameters=
 model_lr2 = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'multi_class':'multinomial','solver':'sag','dual':False,'n_jobs':-1},name='lr2',use_cache=class_use_cache)
 model_svm = Classifier(dataset=dataset, estimator=svm.SVC, parameters={ 'probability':True},name='svm',use_cache=class_use_cache)
 model_svc= Classifier(dataset=dataset, estimator=svm.LinearSVC,name='LinearSVC',use_cache=class_use_cache)
-model_gbdt=Classifier(dataset=dataset, estimator=GradientBoostingClassifier,name="gdbt",parameters={ 'n_estimators':50,'subsample' : 0.6},use_cache=class_use_cache)
+model_knn=Classifier(dataset=dataset, estimator=KNeighborsClassifier,name="knn",use_cache=class_use_cache)
 # Stack两个模型mhg
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 logging.info('stack_ds....')
