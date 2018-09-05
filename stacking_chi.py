@@ -86,7 +86,7 @@ else:
 
 X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.01, random_state=111)
 
-X_train_wc, X_test_wc, y_train_wc, y_test_wc =train_test_split(trn_term_doc_wc, y, test_size=0.01, random_state=111)
+# X_train_wc, X_test_wc, y_train_wc, y_test_wc =train_test_split(trn_term_doc_wc, y, test_size=0.01, random_state=111)
 print('tttt')
 # X_train=X_train.toarray()
 # X_test=X_test.toarray()
