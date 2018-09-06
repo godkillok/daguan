@@ -101,7 +101,7 @@ model_sgt=Classifier(dataset=dataset, estimator=SGDClassifier,name="sgd",use_cac
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 logging.info('stack_ds....')
 # pipeline = ModelsPipeline(model_nb,model_lr,model_svc)
-pipeline = ModelsPipeline(model_mlp)
+pipeline = ModelsPipeline(model_sgt)
 # pipeline = ModelsPipeline(model_nb),model_nb,model_lr,model_lr2
 stack_ds = pipeline.stack(k=8,seed=111)
 #第二层使用lr模型stack2
