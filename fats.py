@@ -30,7 +30,7 @@ def create_data():
             file.writelines(' '.join(new_line) + ' __label__' + str(label) + '\n')
 def pred_():
     import numpy as np
-    model=f.load_model('../new_more_data_n3.bin')
+    model=f.load_model('../new_more_data_n51.bin')
     type_ = 'test'
     dataset_path = '../input_data/{}.csv'.format(type_)
     out_put = '../input_data/{}_more_data_sc.csv'.format(type_)
@@ -71,6 +71,6 @@ def pred_():
         'class':label_list
     }
                                     )
-    out_put = '../fast_n3.csv'
+    out_put = '../fast_n51.csv'
     label_pd[['id','class']].to_csv(out_put, index_label=None, index=False)
 pred_()

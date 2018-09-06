@@ -33,7 +33,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size"
 flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
 flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 30000,
+flags.DEFINE_integer("train_steps", 25000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("decay_steps", 5000,
                      "Number of (global) training steps to perform")
@@ -236,6 +236,6 @@ def main(unused_argv):
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
-    tf.app.run(main=main)
-    # from cnn import nn_pred
-    # tf.app.run(main=nn_pred.pred(my_model,FLAGS,'rcnn1'))
+    # tf.app.run(main=main)
+    from cnn import nn_pred
+    tf.app.run(main=nn_pred.pred(my_model,FLAGS,'rcnn2'))
