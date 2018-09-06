@@ -93,7 +93,7 @@ model_lr2 = Classifier(dataset=dataset, estimator=LogisticRegression, parameters
 model_svm = Classifier(dataset=dataset, estimator=svm.SVC, parameters={ 'probability':True},name='svm',use_cache=class_use_cache)
 model_svc= Classifier(dataset=dataset, estimator=svm.LinearSVC,name='LinearSVC',use_cache=class_use_cache)
 model_mlp=Classifier(dataset=dataset, estimator=MLPClassifier,name="mlp",use_cache=class_use_cache)
-model_sgt=Classifier(dataset=dataset, estimator=SGDClassifier,name="mlp",use_cache=class_use_cache)
+model_sgt=Classifier(dataset=dataset, estimator=SGDClassifier,name="sgd",use_cache=class_use_cache)
 
 
 
