@@ -56,6 +56,8 @@ print(train.shape)
 test_id = test["id"].copy()
 vec = TfidfVectorizer(ngram_range=(1, 3), min_df=3, max_df=0.9, use_idf=1, smooth_idf=1, sublinear_tf=1,
                       max_features=3520641)
+
+vec=HashingVectorizer(ngram_range=(1, 3),n_features=800641)
 X_train = vec.fit_transform(train[column])
 X_test = vec.transform(test[column])
 
@@ -65,9 +67,9 @@ fid0=open('baseline.csv','w')
 
 y_train=(train["class"]-1).astype(int)
 print('max feature is{}'.format(len(vec.vocabulary_)))
-ch2 = SelectKBest(chi2, k=int(len(vec.vocabulary_)*0.65))
-X_train = ch2.fit_transform(X_train, y_train)
-X_test = ch2.transform(X_test)
+# ch2 = SelectKBest(chi2, k=int(len(vec.vocabulary_)*0.65))
+# X_train = ch2.fit_transform(X_train, y_train)
+# X_test = ch2.transform(X_test)
 
 X_train, X_train_test, y_train, y_train_test = train_test_split(X_train,
                                                             y_train,
