@@ -7,7 +7,7 @@ import re
 import os
 import json
 from tensorflow.contrib import rnn
-# from cnn import nn_pred
+
 # for python 22.x
 # import sys
 # reload(sys)
@@ -236,4 +236,6 @@ def main(unused_argv):
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
-    tf.app.run(main=main)
+    # tf.app.run(main=main)
+    from cnn import nn_pred
+    tf.app.run(main=nn_pred.pred(my_model,FLAGS,'rcnn1'))
