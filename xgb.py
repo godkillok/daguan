@@ -66,7 +66,7 @@ X_test = vec.transform(test[column])
 fid0=open('baseline.csv','w')
 
 y_train=(train["class"]-1).astype(int)
-print('max feature is{}'.format(len(vec.vocabulary_)))
+
 # ch2 = SelectKBest(chi2, k=int(len(vec.vocabulary_)*0.65))
 # X_train = ch2.fit_transform(X_train, y_train)
 # X_test = ch2.transform(X_test)
