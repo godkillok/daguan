@@ -63,9 +63,9 @@ if read==False:
     logging.info(len(vec.vocabulary_))
     test_term_doc = vec.transform(test[column])
 
-    ch2 = SelectKBest(chi2, k=2520641)
-    trn_term_doc = ch2.fit_transform(trn_term_doc, y)
-    test_term_doc = ch2.transform(test_term_doc)
+    ch33 = SelectKBest(chi2, k=1520641)
+    trn_term_doc = ch33.fit_transform(trn_term_doc, y)
+    test_term_doc = ch33.transform(test_term_doc)
 
     print('write to  .....')
     with open('../input_data/trn_term_doc_chi_13.pil','wb') as f:
