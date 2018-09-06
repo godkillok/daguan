@@ -8,7 +8,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import Perceptron
 from xgboost.sklearn import XGBClassifier
 from sklearn import svm
-
+from sklearn.neural_network.multilayer_perceptron import MLPClassifier
 import scipy
 from sklearn.metrics import accuracy_score,f1_score
 #加载数据集
@@ -89,11 +89,15 @@ model_lr = Classifier(dataset=dataset, estimator=LogisticRegression, parameters=
 model_lr2 = Classifier(dataset=dataset, estimator=LogisticRegression, parameters={'C':4, 'multi_class':'multinomial','solver':'sag','dual':False,'n_jobs':-1},name='lr2',use_cache=class_use_cache)
 model_svm = Classifier(dataset=dataset, estimator=svm.SVC, parameters={ 'probability':True},name='svm',use_cache=class_use_cache)
 model_svc= Classifier(dataset=dataset, estimator=svm.LinearSVC,name='LinearSVC',use_cache=class_use_cache)
-model_knn=Classifier(dataset=dataset, estimator=KNeighborsClassifier,name="gdbt",use_cache=class_use_cache)
+model_mlp=Classifier(dataset=dataset, estimator=MLPClassifier,name="mlp",use_cache=class_use_cache)
+
+
+
 # Stack两个模型mhg
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 logging.info('stack_ds....')
-pipeline = ModelsPipeline(model_nb,model_lr,model_svc)
+# pipeline = ModelsPipeline(model_nb,model_lr,model_svc)
+pipeline = ModelsPipeline(model_mlp)
 # pipeline = ModelsPipeline(model_nb),model_nb,model_lr,model_lr2
 stack_ds = pipeline.stack(k=8,seed=111)
 #第二层使用lr模型stack2
