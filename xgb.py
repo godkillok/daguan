@@ -54,8 +54,8 @@ print(train.shape)
 
 
 test_id = test["id"].copy()
-vec = TfidfVectorizer(ngram_range=(1, 3), min_df=3, max_df=0.9, use_idf=1, smooth_idf=1, sublinear_tf=1,
-                      max_features=3520641)
+# vec = TfidfVectorizer(ngram_range=(1, 3), min_df=3, max_df=0.9, use_idf=1, smooth_idf=1, sublinear_tf=1,
+#                       max_features=3520641)
 
 vec=HashingVectorizer(ngram_range=(1, 3),n_features=800641)
 X_train = vec.fit_transform(train[column])
