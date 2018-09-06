@@ -33,7 +33,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size"
 flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
 flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 20000,
+flags.DEFINE_integer("train_steps", 30000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("decay_steps", 5000,
                      "Number of (global) training steps to perform")
@@ -122,9 +122,9 @@ def my_model(features, labels, mode, params):
     # Get word embeddings for each token in the sentence
 
     assert (params["vocab_size"], FLAGS.embedding_size) == params["word_embedding"].shape
-    embeddings = tf.get_variable(name="embeddings", dtype=tf.float32,
+    embeddings = tf.get_variable(name="embeddings", dtype=tf.float32,trainable=False,
                                  shape=[params["vocab_size"], FLAGS.embedding_size],
-                                 initializer=tf.constant_initializer(params["word_embedding"], dtype=tf.float32))
+                                 initializer=tf.constant_initializer(params["word_embedding"], dtype=tf.float32,))
     hidden_size=FLAGS.embedding_size
     sentence = tf.nn.embedding_lookup(embeddings, sentence)  # shape:(batch, sentence_len, embedding_size)
     # add a channel dim, required by the conv2d and max_pooling2d method
@@ -236,6 +236,6 @@ def main(unused_argv):
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
-    # tf.app.run(main=main)
-    from cnn import nn_pred
-    tf.app.run(main=nn_pred.pred(my_model,FLAGS,'rcnn1'))
+    tf.app.run(main=main)
+    # from cnn import nn_pred
+    # tf.app.run(main=nn_pred.pred(my_model,FLAGS,'rcnn1'))
