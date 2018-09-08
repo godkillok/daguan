@@ -66,30 +66,30 @@ lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=topic_num)
 
 # 建立LSA对应的文档主题矩阵
 train_topic1 = []
+N = topic_num
+
+train_vector = np.zeros((len(test_documents),N), float)
 for x in range(len(train_documents)):
     a1 = dictionary.doc2bow(train_documents[x])
-    N = topic_num
-
-    dense_vector = np.zeros((N, 1), float)
     for index, value in lsi[a1]:
-        dense_vector[index] = value
-    train_topic1.append(dense_vector)
+        train_vector[x, index] = value
 
-a1 = dictionary.doc2bow(train_documents[1])
+
 
 
 # print(dense_vector)
 # print(lsi[a1])1
-train_topic=np.array(train_topic1)
+train_topic=train_vector
 test_topic1=[]
+dense_vector = np.zeros((len(test_documents),N), float)
 for x in range(len(test_documents)):
     a1 = dictionary.doc2bow(test_documents[x])
     N = topic_num
-    dense_vector = np.zeros((N), float)
+
     for index, value in lsi[a1]:
-        dense_vector[index] = value
-    test_topic1.append(dense_vector)
-test_topic=np.array(test_topic1)
+        dense_vector[x,index] = value
+
+test_topic=dense_vector
 
 
 from sklearn.svm import SVC
