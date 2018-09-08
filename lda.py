@@ -85,7 +85,7 @@ test_topic1=[]
 for x in range(len(test_documents)):
     a1 = dictionary.doc2bow(test_documents[x])
     N = topic_num
-    dense_vector = np.zeros((N, ), float)
+    dense_vector = np.zeros((N), float)
     for index, value in lsi[a1]:
         dense_vector[index] = value
     test_topic1.append(dense_vector)
