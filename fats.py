@@ -26,7 +26,7 @@ def create_data():
                              '133940', '1071452', '876555', '323159', '572782', '105283', '166959',
                              '235896', '554251', '', '1267351', '1224594', '201789', '824446', '263278']:
                     new_line.append(t)
-            label=line.split(',')[0]
+            label=line.split(',')[2]
             file.writelines(' '.join(new_line) + ' __label__' + str(label) + '\n')
 
 def pred_():
