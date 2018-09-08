@@ -77,7 +77,7 @@ dense_vector = np.zeros((N, 1),float)
 for index, value in lsi[a1]:
     dense_vector[index] = value
 print(dense_vector)
-
+print(lsi[a1])
 train_topic=np.array(train_topic1)
 test_topic1=[]
 for x in range(len(test_documents)):
