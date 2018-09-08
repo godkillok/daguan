@@ -53,25 +53,26 @@ print(lines[1])
 test_documents=[d.split(',')[1].split() for d in lines[1:]]
 logging.info('train_documents {}'.format(len(train_documents)))
 
-documents=train_documents+test_documents
-logging.info('train_documents {}'.format(len(train_documents)))
-logging.info('documents {}'.format(len(documents)))
-
-dictionary=corpora.Dictionary(documents)
-corpus=[dictionary.doc2bow(doc) for doc in documents]#generate the corpus
-tf_idf=models.TfidfModel(corpus)#the constructor
-corpus_tfidf=tf_idf[corpus]
-topic_num=500
-lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=topic_num)
-
-# 建立LSA对应的文档主题矩阵
-train_topic1 = []
-N = topic_num
 
 
 train_flag=False
 
 if train_flag==True:
+
+    documents = train_documents + test_documents
+    logging.info('train_documents {}'.format(len(train_documents)))
+    logging.info('documents {}'.format(len(documents)))
+
+    dictionary = corpora.Dictionary(documents)
+    corpus = [dictionary.doc2bow(doc) for doc in documents]  # generate the corpus
+    tf_idf = models.TfidfModel(corpus)  # the constructor
+    corpus_tfidf = tf_idf[corpus]
+    topic_num = 500
+    lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=topic_num)
+
+    # 建立LSA对应的文档主题矩阵
+    train_topic1 = []
+    N = topic_num
     train_vector = np.zeros((len(test_documents),N), float)
     for x in range(len(train_documents)):
         a1 = dictionary.doc2bow(train_documents[x])
