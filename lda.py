@@ -104,8 +104,8 @@ if train_flag==True:
     np.save('./train_topic',train_topic)
     np.save('./test_topic',test_topic)
 else:
-    train_topic=np.load('./train_topic')
-    test_topic = np.load('./test_topic')
+    train_topic=np.load('./train_topic.npy')
+    test_topic = np.load('./test_topic.npy')
     model=fastText.load_model('../input_data/new_more_data.bin')
 
     for i in train_topic.shape[0]:
