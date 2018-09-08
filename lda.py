@@ -68,8 +68,10 @@ lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=topic_num)
 train_topic1 = []
 for x in range(len(train_documents)):
     a1 = dictionary.doc2bow(train_documents[x])
-    print(lsi[a1].shape)
     train_topic1.append(lsi[a1])
+
+a1 = dictionary.doc2bow(train_documents[1])
+print(lsi[a1])
 
 train_topic=np.array(train_topic1)
 test_topic1=[]
