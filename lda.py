@@ -40,7 +40,7 @@ logging.basicConfig(level=logging.INFO,
 with  open('../input_data/train.csv','r') as f:
     lines=f.readlines()
 print(lines[1])
-train_documents=[d.split(',')[1].split() for d in lines[1:]]
+train_documents=[d.split(',')[1].split() for d in lines[1:100]]
 labelss=[int(d.split(',')[2])-1 for d in lines[1:]]
 logging.info('documents {}'.format(train_documents[0]))
 logging.info('lables {}'.format(labelss[0]))
@@ -50,7 +50,7 @@ logging.info('lables {}'.format(labelss[0]))
 with  open('../input_data/test.csv','r') as f:
     lines=f.readlines()
 print(lines[1])
-test_documents=[d.split(',')[1].split() for d in lines[1:]]
+test_documents=[d.split(',')[1].split() for d in lines[1:100]]
 logging.info('train_documents {}'.format(len(train_documents)))
 
 documents=train_documents+test_documents
@@ -65,17 +65,17 @@ topic_num=500
 lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=topic_num)
 
 # 建立LSA对应的文档主题矩阵
-train_topic = []
+train_topic1 = []
 for x in range(len(train_documents)):
     a1 = dictionary.doc2bow(train_documents[x])
-    train_topic.append(lsi[a1])
+    train_topic1.append(lsi[a1])
 
-train_topic=np.array(train_topic)
-test_topic=[]
+train_topic=np.array(train_topic1)
+test_topic1=[]
 for x in range(len(test_documents)):
     a1 = dictionary.doc2bow(test_documents[x])
-    test_topic.append(lsi[a1])
-test_topic=np.array(test_topic)
+    test_topic1.append(lsi[a1])
+test_topic=np.array(test_topic1)
 
 
 from sklearn.svm import SVC
