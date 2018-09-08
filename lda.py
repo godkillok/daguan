@@ -125,7 +125,7 @@ else:
 
 X_train, X_test, Y_train, Y_test = train_test_split(train_topic, labelss, test_size=0.1)
 sv = svm.LinearSVC()
-sv.fit(train_topic,labelss)
+# sv.fit(train_topic,labelss)
 
 
 sv.fit(X_train, Y_train)
