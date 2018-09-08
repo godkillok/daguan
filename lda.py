@@ -33,12 +33,13 @@ from gensim import models,corpora
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
-train = pd.read_csv('../input_data/train.csv')
-test = pd.read_csv('../input_data/test.csv')
+# train = pd.read_csv('../input_data/train.csv')
+# test = pd.read_csv('../input_data/test.csv')
 
 
 with  open('../input_data/train.csv','r') as f:
     lines=f.readlines()
+print(lines[0])
 train_documents=[d[1] for d in lines]
 labelss=[int(d[2])-1 for d in lines]
 logging.info('documents {}'.format(train_documents[0]))
@@ -48,6 +49,7 @@ logging.info('lables {}'.format(labelss[0]))
 
 with  open('../input_data/test.csv','r') as f:
     lines=f.readlines()
+print(lines[0])
 test_documents=[d[1] for d in lines]
 logging.info('train_documents {}'.format(len(train_documents)))
 
@@ -77,7 +79,7 @@ test_topic=np.array(test_topic)
 
 
 from sklearn.svm import SVC
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 logging.info('train_topic shape {}'.format(train_topic.shape))
 
 
