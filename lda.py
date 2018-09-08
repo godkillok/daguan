@@ -108,11 +108,11 @@ else:
     test_topic = np.load('./test_topic.npy')
     model=fastText.load_model('../input_data/new_more_data.bin')
     logging.info('train_topic shape {}'.format(train_topic.shape))
-    for i in train_topic.shape[0]:
+    for i in range(train_topic.shape[0]):
         a1 = model.get_sentence_vector(train_documents[i])
         train_topic[i, :]=np.concatenate([train_topic[i,:],a1],0)
 
-    for i in test_topic.shape[0]:
+    for i in range(test_topic.shape[0]):
         a1 = model.get_sentence_vector(test_documents[i])
         test_topic[i, :]=np.concatenate([test_topic[i,:],a1],0)
 
