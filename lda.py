@@ -62,7 +62,7 @@ corpus=[dictionary.doc2bow(doc) for doc in documents]#generate the corpus
 tf_idf=models.TfidfModel(corpus)#the constructor
 corpus_tfidf=tf_idf[corpus]
 topic_num=500
-lsi = models.LsiModel(corpus_tfidf, distributed=True,id2word=dictionary, num_topics=topic_num)
+lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=topic_num)
 
 # 建立LSA对应的文档主题矩阵
 train_topic = []
