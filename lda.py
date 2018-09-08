@@ -55,7 +55,7 @@ logging.info('train_documents {}'.format(len(train_documents)))
 
 
 
-train_flag=False
+train_flag=True
 
 if train_flag==True:
 
@@ -67,17 +67,20 @@ if train_flag==True:
     corpus = [dictionary.doc2bow(doc) for doc in documents]  # generate the corpus
     tf_idf = models.TfidfModel(corpus)  # the constructor
     corpus_tfidf = tf_idf[corpus]
-    topic_num = 500
+    topic_num = 100
     lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=topic_num)
 
     # 建立LSA对应的文档主题矩阵
     train_topic1 = []
     N = topic_num
-    train_vector = np.zeros((len(test_documents),N), float)
+    train_vector = np.zeros((len(test_documents),N+100), float)
+    model = fastText.load_model('../input_data/new_more_data.bin')
     for x in range(len(train_documents)):
         a1 = dictionary.doc2bow(train_documents[x])
         for index, value in lsi[a1]:
             train_vector[x, index] = value
+        a1 = model.get_sentence_vector(' '.join(train_documents[x]))
+        train_vector[x, :] = np.concatenate([train_vector[x, 0:N-1], a1], 0)
 
 
 
@@ -94,6 +97,8 @@ if train_flag==True:
 
         for index, value in lsi[a1]:
             dense_vector[x,index] = value
+        a1 = model.get_sentence_vector(' '.join(test_documents[x]))
+        dense_vector[x, :] = np.concatenate([dense_vector[x, 0:N - 1], a1], 0)
 
     test_topic=dense_vector
 
@@ -101,8 +106,8 @@ if train_flag==True:
     from sklearn.svm import SVC
     from sklearn.model_selection import train_test_split
     logging.info('train_topic shape {}'.format(train_topic.shape))
-    np.save('./train_topic',train_topic)
-    np.save('./test_topic',test_topic)
+    np.save('./train_topic_fast',train_topic)
+    np.save('./test_topic_fast',test_topic)
 else:
     train_topic_1=np.load('./train_topic.npy')
     test_topic_1 = np.load('./test_topic.npy')
