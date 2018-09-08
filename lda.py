@@ -68,21 +68,27 @@ lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=topic_num)
 train_topic1 = []
 for x in range(len(train_documents)):
     a1 = dictionary.doc2bow(train_documents[x])
-    train_topic1.append(lsi[a1])
+    N = topic_num
+
+    dense_vector = np.zeros((N, 1), float)
+    for index, value in lsi[a1]:
+        dense_vector[index] = value
+    train_topic1.append(dense_vector)
 
 a1 = dictionary.doc2bow(train_documents[1])
-N=topic_num
 
-dense_vector = np.zeros((N, 1),float)
-for index, value in lsi[a1]:
-    dense_vector[index] = value
-print(dense_vector)
-print(lsi[a1])
+
+# print(dense_vector)
+# print(lsi[a1])
 train_topic=np.array(train_topic1)
 test_topic1=[]
 for x in range(len(test_documents)):
     a1 = dictionary.doc2bow(test_documents[x])
-    test_topic1.append(lsi[a1])
+    N = topic_num
+    dense_vector = np.zeros((N, 1), float)
+    for index, value in lsi[a1]:
+        dense_vector[index] = value
+    test_topic1.append(dense_vector)
 test_topic=np.array(test_topic1)
 
 
