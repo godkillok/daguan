@@ -115,3 +115,6 @@ for item in preds:
     fid0.write(str(i)+","+str(item+1)+"\n")
     i=i+1
 fid0.close()
+
+np.save('./train_topic',train_topic)
+np.save('./test_topic',test_topic)
