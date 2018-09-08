@@ -41,7 +41,7 @@ with  open('../input_data/train.csv','r') as f:
     lines=f.readlines()
 print(lines[1])
 train_documents=[d.split(',')[1] for d in lines[1:]]
-labelss=[int(d.split(',')[2])-1 for d in lines]
+labelss=[int(d.split(',')[2])-1 for d in lines[1:]]
 logging.info('documents {}'.format(train_documents[0]))
 logging.info('lables {}'.format(labelss[0]))
 
