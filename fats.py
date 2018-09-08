@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import HashingVectorizer
 import pandas as pd
 import fastText as f
 def create_data():
-    type_='test'
+    type_='train'
     dataset_path='../input_data/{}.csv'.format(type_)
     out_put='../input_data/{}_more_data.csv'.format(type_)
     with open(dataset_path) as file:
