@@ -30,7 +30,7 @@ import logging
 import os
 import re
 from gensim import models,corpora
-
+import  fastText
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 # train = pd.read_csv('../input_data/train.csv')
@@ -68,34 +68,55 @@ lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=topic_num)
 train_topic1 = []
 N = topic_num
 
-train_vector = np.zeros((len(test_documents),N), float)
-for x in range(len(train_documents)):
-    a1 = dictionary.doc2bow(train_documents[x])
-    for index, value in lsi[a1]:
-        train_vector[x, index] = value
+
+train_flag=False
+
+if train_flag==True:
+    train_vector = np.zeros((len(test_documents),N), float)
+    for x in range(len(train_documents)):
+        a1 = dictionary.doc2bow(train_documents[x])
+        for index, value in lsi[a1]:
+            train_vector[x, index] = value
 
 
 
 
-# print(dense_vector)
-# print(lsi[a1])1
-train_topic=train_vector
-test_topic1=[]
-dense_vector = np.zeros((len(test_documents),N), float)
-for x in range(len(test_documents)):
-    a1 = dictionary.doc2bow(test_documents[x])
-    N = topic_num
+    # print(dense_vector)
+    # print(lsi[a1])1
 
-    for index, value in lsi[a1]:
-        dense_vector[x,index] = value
+    train_topic=train_vector
+    test_topic1=[]
+    dense_vector = np.zeros((len(test_documents),N), float)
+    for x in range(len(test_documents)):
+        a1 = dictionary.doc2bow(test_documents[x])
+        N = topic_num
 
-test_topic=dense_vector
+        for index, value in lsi[a1]:
+            dense_vector[x,index] = value
+
+    test_topic=dense_vector
 
 
-from sklearn.svm import SVC
-from sklearn.model_selection import train_test_split
-logging.info('train_topic shape {}'.format(train_topic.shape))
+    from sklearn.svm import SVC
+    from sklearn.model_selection import train_test_split
+    logging.info('train_topic shape {}'.format(train_topic.shape))
+    np.save('./train_topic',train_topic)
+    np.save('./test_topic',test_topic)
+else:
+    train_topic=np.load('./train_topic')
+    test_topic = np.load('./test_topic')
+    model=fastText.load_model('../input_data/new_more_data.bin')
 
+    for i in train_topic.shape[0]:
+        a1 = model.get_sentence_vector(train_documents[i])
+        train_topic[i, :]=np.concatenate([train_topic[i,:],a1],0)
+
+    for i in test_topic.shape[0]:
+        a1 = model.get_sentence_vector(test_documents[i])
+        test_topic[i, :]=np.concatenate([test_topic[i,:],a1],0)
+
+    logging.info('train_topic shape {}'.format(train_topic.shape))
+    logging.info('test_topic shape {}'.format(test_topic.shape))
 
 
 
@@ -105,7 +126,7 @@ sv.fit(train_topic,labelss)
 
 
 sv.fit(X_train, Y_train)
-print(sv.score(X_test, Y_test))
+logging.info(sv.score(X_test, Y_test))
 
 preds = sv.predict(test_topic)
 i=0
@@ -116,5 +137,3 @@ for item in preds:
     i=i+1
 fid0.close()
 
-np.save('./train_topic',train_topic)
-np.save('./test_topic',test_topic)
