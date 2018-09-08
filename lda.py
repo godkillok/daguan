@@ -104,17 +104,19 @@ if train_flag==True:
     np.save('./train_topic',train_topic)
     np.save('./test_topic',test_topic)
 else:
-    train_topic=np.load('./train_topic.npy')
-    test_topic = np.load('./test_topic.npy')
+    train_topic_1=np.load('./train_topic.npy')
+    test_topic_1 = np.load('./test_topic.npy')
     model=fastText.load_model('../input_data/new_more_data.bin')
-    logging.info('train_topic shape {}'.format(train_topic.shape))
-    for i in range(train_topic.shape[0]):
+    logging.info('train_topic shape {}'.format(train_topic_1.shape))
+    train_topic=np.zeros((train_topic_1.shape[0],train_topic_1.shape[1]+100), float)
+    for i in range(train_topic_1.shape[0]):
         a1 = model.get_sentence_vector(' '.join(train_documents[i]))
-        train_topic[i, :]=np.concatenate([train_topic[i,:],a1],0)
+        train_topic[i, :]=np.concatenate([train_topic_1[i,:],a1],0)
 
-    for i in range(test_topic.shape[0]):
+    test_topic = np.zeros((test_topic_1.shape[0], train_topic_1.shape[1] + 100), float)
+    for i in range(test_topic_1.shape[0]):
         a1 = model.get_sentence_vector(' '.join(test_documents[i]))
-        test_topic[i, :]=np.concatenate([test_topic[i,:],a1],0)
+        test_topic[i, :]=np.concatenate([test_topic_1[i,:],a1],0)
 
     logging.info('train_topic shape {}'.format(train_topic.shape))
     logging.info('test_topic shape {}'.format(test_topic.shape))
