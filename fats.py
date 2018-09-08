@@ -28,6 +28,7 @@ def create_data():
                     new_line.append(t)
             label=line.split(',')[0]
             file.writelines(' '.join(new_line) + ' __label__' + str(label) + '\n')
+
 def pred_():
     import numpy as np
     model=f.load_model('../new_more_data_n51.bin')
@@ -73,4 +74,4 @@ def pred_():
                                     )
     out_put = '../fast_n51.csv'
     label_pd[['id','class']].to_csv(out_put, index_label=None, index=False)
-pred_()
+create_data()
