@@ -40,8 +40,8 @@ logging.basicConfig(level=logging.INFO,
 with  open('../input_data/train.csv','r') as f:
     lines=f.readlines()
 print(lines[1])
-train_documents=[d.split(',')[1].split() for d in lines[1:100]]
-labelss=[int(d.split(',')[2])-1 for d in lines[1:100]]
+train_documents=[d.split(',')[1].split() for d in lines[1:]]
+labelss=[int(d.split(',')[2])-1 for d in lines[1:]]
 logging.info('documents {}'.format(train_documents[0]))
 logging.info('lables {}'.format(labelss[0]))
 
@@ -50,7 +50,7 @@ logging.info('lables {}'.format(labelss[0]))
 with  open('../input_data/test.csv','r') as f:
     lines=f.readlines()
 print(lines[1])
-test_documents=[d.split(',')[1].split() for d in lines[1:100]]
+test_documents=[d.split(',')[1].split() for d in lines[1:]]
 logging.info('train_documents {}'.format(len(train_documents)))
 
 documents=train_documents+test_documents
