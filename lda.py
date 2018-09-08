@@ -71,7 +71,12 @@ for x in range(len(train_documents)):
     train_topic1.append(lsi[a1])
 
 a1 = dictionary.doc2bow(train_documents[1])
-print(lsi[a1])
+N=topic_num
+
+dense_vector = np.zeros((N, 1),float)
+for index, value in lsi[a1]:
+    dense_vector[index] = value
+print(dense_vector)
 
 train_topic=np.array(train_topic1)
 test_topic1=[]
