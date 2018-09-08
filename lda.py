@@ -105,7 +105,7 @@ sv.fit(train_topic,labelss)
 
 
 sv.fit(X_train, Y_train)
-sv.score(X_test, Y_test)
+print(sv.score(X_test, Y_test))
 
 preds = sv.predict(test_topic)
 i=0
