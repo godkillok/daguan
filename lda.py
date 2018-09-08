@@ -79,7 +79,7 @@ a1 = dictionary.doc2bow(train_documents[1])
 
 
 # print(dense_vector)
-# print(lsi[a1])
+# print(lsi[a1])1
 train_topic=np.array(train_topic1)
 test_topic1=[]
 for x in range(len(test_documents)):
