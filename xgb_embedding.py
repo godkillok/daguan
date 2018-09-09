@@ -1,4 +1,4 @@
-
+from hyperopt import fmin, tpe, hp, rand
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn import svm
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
@@ -107,7 +107,7 @@ for i in range(len(test_documents)):
 
 X_train, X_train_test, y_train, y_train_test = train_test_split(train_topic,
                                                                 labelss,
-                                                            test_size=0.1)
+                                                            test_size=0.2)
 
 print('load data complete {}'.format(X_train.shape))
 

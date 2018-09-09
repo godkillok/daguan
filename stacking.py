@@ -111,7 +111,7 @@ results = stacker.predict()
 
 
 # 使用10折交叉验证结果
-results10 = stacker.validate(k=10,scorer=accuracy_score)
+results10 = stacker.validate(k=3,scorer=accuracy_score)
 logging.info(results10)
 
 
