@@ -134,7 +134,7 @@ model_svm = Classifier(dataset=dataset, estimator=svm.SVC, parameters={ 'probabi
 model_svc= Classifier(dataset=dataset, estimator=svm.LinearSVC,name='LinearSVC',use_cache=class_use_cache)
 model_mlp=Classifier(dataset=dataset, estimator=MLPClassifier,name="mlp",use_cache=class_use_cache)
 model_sgt=Classifier(dataset=dataset, estimator=SGDClassifier, parameters={ 'penalty':'l1'},name="sgd",use_cache=class_use_cache)
-model_xgb=Classifier(dataset=dataset, estimator=SGDClassifier, parameters={  'subsample':0.6, 'colsample_btree':0.6, 'random_state':27,         'n_jobs':1},name="xgb",use_cache=class_use_cache)
+model_xgb=Classifier(dataset=dataset, estimator=XGBClassifier, parameters={  'subsample':0.6, 'colsample_btree':0.6, 'random_state':27,         'n_jobs':1},name="xgb",use_cache=class_use_cache)
 
 
 
