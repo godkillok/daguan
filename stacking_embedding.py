@@ -117,13 +117,13 @@ else:
     with open('../input_data/test_term_doc_13.pil', 'rb') as f:
         test_term_doc=pickle.load( f)
 
-X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.01, random_state=111)
+X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.2, random_state=111)
 print('tttt')
 # X_train=X_train.toarray()
 # X_test=X_test.toarray()
 print('to array')
 #创建数据集11
-dataset = Dataset(X_train,y_train,test_term_doc,use_cache=False)
+dataset = Dataset(X_train,y_train,X_test,use_cache=False)
 #创建RF模型和LR模型1
 
 class_use_cache=False
@@ -152,12 +152,12 @@ results = stacker.predict()
 
 
 # 使用10折交叉验证结果
-results10 = stacker.validate(k=3,scorer=accuracy_score)
+results10 = stacker.validate(k=8,scorer=accuracy_score)
 logging.info(results10)
 
 
 
-
+print(accuracy_score(y_test, results))
 result_list=list(results+1)
 
 test_id=list(test[["id"]].copy())
@@ -169,4 +169,4 @@ pred_dic={'class':result_list,"id":test_id}
 
 pd.DataFrame.from_dict(pred_dic)[["id","class"]].to_csv('../output/sub_stack_13_svc.csv',index=None)
 
-# print(accuracy_score(y_test, results))12
+
