@@ -142,7 +142,7 @@ model_xgb=Classifier(dataset=dataset, estimator=XGBClassifier, parameters={  'su
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 logging.info('stack_ds....')
 # pipeline = ModelsPipeline(model_nb,model_lr,model_svc)
-pipeline = ModelsPipeline(model_svc,model_lr)
+pipeline = ModelsPipeline(model_xgb,model_svc,model_lr)
 # pipeline = ModelsPipeline(model_nb),model_nb,model_lr,model_lr2
 stack_ds = pipeline.stack(k=8,seed=111)
 #第二层使用lr模型stack2
