@@ -64,7 +64,7 @@ new_ = pd.read_csv('./cnn/valid_id')
 
 y=(train["class"]-1).astype(int)
 logging.info('loaded data')
-read=True
+read=False
 if read==False:
 
     with  open('../input_data/train.csv', 'r') as f:
