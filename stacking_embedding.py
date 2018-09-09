@@ -157,7 +157,7 @@ logging.info(results10)
 
 
 
-print(f1_score(y_test, results,average='macro'))
+print(accuracy_score(y_test, results))
 result_list=list(results+1)
 
 test_id=list(test[["id"]].copy())
