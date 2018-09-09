@@ -99,7 +99,7 @@ for i in range(len(test_documents)):
 
 
 
-y_train=(train["class"]-1).astype(int)
+# y_train=(train["class"]-1).astype(int)
 
 # ch2 = SelectKBest(chi2, k=int(len(vec.vocabulary_)*0.65))
 # X_train = ch2.fit_transform(X_train, y_train)
