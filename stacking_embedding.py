@@ -123,7 +123,7 @@ print('tttt')
 # X_test=X_test.toarray()
 print('to array')
 #创建数据集11
-dataset = Dataset(X_train,y_train,X_test,use_cache=False)
+dataset = Dataset(X_train,y_train,test_term_doc,use_cache=False)
 #创建RF模型和LR模型1
 
 class_use_cache=False
