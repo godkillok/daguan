@@ -1,4 +1,4 @@
-
+from hyperopt import fmin, tpe, hp, rand
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn import svm
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
@@ -39,41 +39,75 @@ from sklearn.feature_selection import SelectKBest, chi2
 import pandas as pd
 import numpy as np
 from sklearn.externals import joblib
+import logging
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
+
+
+
+
 column = "word_seg"
 train = pd.read_csv('../input_data/train.csv')
 test = pd.read_csv('../input_data/test.csv')
-new_ = pd.read_csv('./cnn/valid_id')
-new_=pd.merge(new_, test, how='inner', on=['id', 'id'])
+
 print('merge_before')
 print(train._info_axis)
 print(train.shape)
-train = train.append(new_)
-print('merge_after')
-print(train._info_axis)
-print(train.shape)
+
+
+
+with  open('../input_data/train.csv','r') as f:
+    lines=f.readlines()
+print(lines[1])
+train_documents=[d.split(',')[1].split() for d in lines[1:]]
+labelss=[int(d.split(',')[2])-1 for d in lines[1:]]
+logging.info('documents {}'.format(train_documents[0]))
+logging.info('lables {}'.format(labelss[0]))
+
+
+
+with  open('../input_data/test.csv','r') as f:
+    lines=f.readlines()
+print(lines[1])
+test_documents=[d.split(',')[1].split() for d in lines[1:]]
+logging.info('train_documents {}'.format(len(train_documents)))
+
+
+
+
 
 
 test_id = test["id"].copy()
 # vec = TfidfVectorizer(ngram_range=(1, 3), min_df=3, max_df=0.9, use_idf=1, smooth_idf=1, sublinear_tf=1,
 #                       max_features=3520641)
 
-vec=HashingVectorizer(ngram_range=(1, 3),n_features=800641)
-X_train = vec.fit_transform(train[column])
-X_test = vec.transform(test[column])
+import fastText
+
+model=fastText.load_model('../input_data/new_more_data.bin')
+train_topic=np.zeros((len(train_documents),100), float)
+
+for i in range(len(train_documents)):
+    a1 = model.get_sentence_vector(' '.join(train_documents[i]))
+    train_topic[i, :] =a1
+
+X_test=np.zeros((len(test_documents),100), float)
+for i in range(len(test_documents)):
+    a1 = model.get_sentence_vector(' '.join(test_documents[i]))
+    X_test[i, :] =a1
 
 
 
-fid0=open('baseline.csv','w')
 
-y_train=(train["class"]-1).astype(int)
+# y_train=(train["class"]-1).astype(int)
 
 # ch2 = SelectKBest(chi2, k=int(len(vec.vocabulary_)*0.65))
 # X_train = ch2.fit_transform(X_train, y_train)
 # X_test = ch2.transform(X_test)
 
-X_train, X_train_test, y_train, y_train_test = train_test_split(X_train,
-                                                            y_train,
-                                                            test_size=0.1)
+X_train, X_train_test, y_train, y_train_test = train_test_split(train_topic,
+                                                                labelss,
+                                                            test_size=0.2)
 
 print('load data complete {}'.format(X_train.shape))
 
@@ -105,15 +139,10 @@ def benchmark(clf):
     return clf_descr, score, train_time, test_time,pred
 
 
-xgb_model = XGBClassifier(learning_rate=0.1,
-                      n_estimators=100,         # 树的个数--1000棵树建立xgboost1
-                      max_depth=3,               # 树的深度
-                       min_child_weight = 1,      # 叶子节点最小权重
-                       gamma=0.,                  # 惩罚项中叶子结点个数前的参数
+xgb_model = XGBClassifier(
                      subsample=0.6,             # 随机选择80%样本建立决策树
                       colsample_btree=0.6,       # 随机选择80%特征建立决策树
-                      objective='multi:softmax', # 指定损失函数
-                     scale_pos_weight=1,        # 解决样本个数不平衡的问题
+
                       random_state=27,           # 随机数
 n_jobs=-1
                       )
@@ -122,11 +151,11 @@ test_pred={}
 results=[]
 test_pred['id']=test_id
 clf_descr, score, train_time, test_time, pred = benchmark(xgb_model)
-test_pred['xgb'] = pred
+test_pred['class'] = pred
 results.append((clf_descr, score, train_time, test_time))
 print(results)
 test_pred_pd=pd.DataFrame.from_dict(test_pred)
-test_pred_pd.to_csv('../output/xgb.csv',index=False,index_label=False,header=True)
+test_pred_pd[['id','class']].to_csv('../output/xgb.csv',index=False,index_label=False,header=True)
 
 # for clf, name in ((xgb_model, "xgboost_model")):
 #     print('=' * 80)

@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import HashingVectorizer
 import pandas as pd
 import fastText as f
 def create_data():
-    type_='test'
+    type_='train'
     dataset_path='../input_data/{}.csv'.format(type_)
     out_put='../input_data/{}_more_data.csv'.format(type_)
     with open(dataset_path) as file:
@@ -26,8 +26,9 @@ def create_data():
                              '133940', '1071452', '876555', '323159', '572782', '105283', '166959',
                              '235896', '554251', '', '1267351', '1224594', '201789', '824446', '263278']:
                     new_line.append(t)
-            label=line.split(',')[0]
+            label=line.split(',')[2]
             file.writelines(' '.join(new_line) + ' __label__' + str(label) + '\n')
+
 def pred_():
     import numpy as np
     model=f.load_model('../new_more_data_n51.bin')
@@ -73,4 +74,4 @@ def pred_():
                                     )
     out_put = '../fast_n51.csv'
     label_pd[['id','class']].to_csv(out_put, index_label=None, index=False)
-pred_()
+create_data()

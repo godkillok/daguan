@@ -27,6 +27,8 @@ import numpy as np
 import pickle
 import pandas as pd
 import logging
+
+from xgboost.sklearn import XGBClassifier
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 
@@ -55,16 +57,54 @@ new_ = pd.read_csv('./cnn/valid_id')
 # print(train._info_axis)
 # print(train.shape)
 
+
+
+
+
+
 y=(train["class"]-1).astype(int)
 logging.info('loaded data')
-read=True
+read=False
 if read==False:
 
-    vec = TfidfVectorizer(ngram_range=(1,3),min_df=3, max_df=0.9,use_idf=1,smooth_idf=1, sublinear_tf=1,max_features=3520641)
+    with  open('../input_data/train.csv', 'r') as f:
+        lines = f.readlines()
+    print(lines[1])
+    train_documents = [d.split(',')[1].split() for d in lines[1:]]
+    labelss = [int(d.split(',')[2]) - 1 for d in lines[1:]]
+    logging.info('documents {}'.format(train_documents[0]))
+    logging.info('lables {}'.format(labelss[0]))
 
-    trn_term_doc = vec.fit_transform(train[column])
-    logging.info(len(vec.vocabulary_))
-    test_term_doc = vec.transform(test[column])
+    with  open('../input_data/test.csv', 'r') as f:
+        lines = f.readlines()
+    print(lines[1])
+    test_documents = [d.split(',')[1].split() for d in lines[1:]]
+    logging.info('train_documents {}'.format(len(train_documents)))
+
+    test_id = test["id"].copy()
+    # vec = TfidfVectorizer(ngram_range=(1, 3), min_df=3, max_df=0.9, use_idf=1, smooth_idf=1, sublinear_tf=1,
+    #                       max_features=3520641)
+
+    import fastText
+
+    model = fastText.load_model('../input_data/new_more_data.bin')
+    train_topic = np.zeros((len(train_documents), 100), float)
+
+    for i in range(len(train_documents)):
+        a1 = model.get_sentence_vector(' '.join(train_documents[i]))
+        train_topic[i, :] = a1
+
+    X_test = np.zeros((len(test_documents), 100), float)
+    for i in range(len(test_documents)):
+        a1 = model.get_sentence_vector(' '.join(test_documents[i]))
+        X_test[i, :] = a1
+
+
+
+    trn_term_doc=train_topic
+    y=labelss
+    test_term_doc=X_test
+
     print('write to  .....')
     with open('../input_data/trn_term_doc_13.pil','wb') as f:
         pickle.dump(trn_term_doc, f)
@@ -77,7 +117,7 @@ else:
     with open('../input_data/test_term_doc_13.pil', 'rb') as f:
         test_term_doc=pickle.load( f)
 
-X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.01, random_state=111)
+X_train, X_test, y_train, y_test =train_test_split(trn_term_doc, y, test_size=0.2, random_state=111)
 print('tttt')
 # X_train=X_train.toarray()
 # X_test=X_test.toarray()
@@ -94,14 +134,15 @@ model_svm = Classifier(dataset=dataset, estimator=svm.SVC, parameters={ 'probabi
 model_svc= Classifier(dataset=dataset, estimator=svm.LinearSVC,name='LinearSVC',use_cache=class_use_cache)
 model_mlp=Classifier(dataset=dataset, estimator=MLPClassifier,name="mlp",use_cache=class_use_cache)
 model_sgt=Classifier(dataset=dataset, estimator=SGDClassifier, parameters={ 'penalty':'l1'},name="sgd",use_cache=class_use_cache)
+model_xgb=Classifier(dataset=dataset, estimator=XGBClassifier, parameters={  'subsample':0.6, 'colsample_btree':0.6, 'random_state':27,         'n_jobs':1},name="xgb",use_cache=class_use_cache)
 
 
 
-# Stack两个模型mhg
+# Stack两个模型mhg1
 # Returns new dataset with out-of-fold prediction,model_svm,model_per
 logging.info('stack_ds....')
 # pipeline = ModelsPipeline(model_nb,model_lr,model_svc)
-pipeline = ModelsPipeline(model_sgt)
+pipeline = ModelsPipeline(model_svc,model_lr)
 # pipeline = ModelsPipeline(model_nb),model_nb,model_lr,model_lr2
 stack_ds = pipeline.stack(k=8,seed=111)
 #第二层使用lr模型stack2
@@ -111,12 +152,12 @@ results = stacker.predict()
 
 
 # 使用10折交叉验证结果
-results10 = stacker.validate(k=3,scorer=accuracy_score)
+results10 = stacker.validate(k=8,scorer=accuracy_score)
 logging.info(results10)
 
 
 
-
+# print(accuracy_score(y_test, results))
 result_list=list(results+1)
 
 test_id=list(test[["id"]].copy())
@@ -128,4 +169,4 @@ pred_dic={'class':result_list,"id":test_id}
 
 pd.DataFrame.from_dict(pred_dic)[["id","class"]].to_csv('../output/sub_stack_13_svc.csv',index=None)
 
-# print(accuracy_score(y_test, results))12
+

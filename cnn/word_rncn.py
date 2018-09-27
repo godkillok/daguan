@@ -33,7 +33,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 30000, "dataset shuffle buffer size"
 flags.DEFINE_integer("sentence_max_len", 250, "max length of sentences")
 flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 500, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 25000,
+flags.DEFINE_integer("train_steps", 30000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("decay_steps", 5000,
                      "Number of (global) training steps to perform")
@@ -120,9 +120,10 @@ def assign_pretrained_word_embedding(params):
 def my_model(features, labels, mode, params):
     sentence = features['text']
     # Get word embeddings for each token in the sentence
-
+      # (2)定义l2_regularizer()
+    regularizer = tf.layers.l1_regularizer(0.1)
     assert (params["vocab_size"], FLAGS.embedding_size) == params["word_embedding"].shape
-    embeddings = tf.get_variable(name="embeddings", dtype=tf.float32,trainable=False,
+    embeddings = tf.get_variable(name="embeddings", dtype=tf.float32,regularizer=regularizer,
                                  shape=[params["vocab_size"], FLAGS.embedding_size],
                                  initializer=tf.constant_initializer(params["word_embedding"], dtype=tf.float32,))
     hidden_size=FLAGS.embedding_size
@@ -158,7 +159,16 @@ def my_model(features, labels, mode, params):
     def _train_op_fn(loss):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
-            return optimizer.minimize(loss, global_step=tf.train.get_global_step())
+            # if tf.train.get_global_step()>1000:
+            #     tf.greater
+                g_vars = tf.trainable_variables()
+                return optimizer.minimize(loss, global_step=tf.train.get_global_step(),var_list=g_vars)
+            # # else:
+            #     tvars = tf.trainable_variables()
+            #     print(tvars)
+            #     g_vars = [var for var in tvars if 'embeddings' not in var.name]
+            #     return optimizer.minimize(loss, global_step=tf.train.get_global_step(), var_list=g_vars)
+
 
     my_head = tf.contrib.estimator.multi_class_head(n_classes=FLAGS.num_classes)
     return my_head.create_estimator_spec(
@@ -236,6 +246,6 @@ def main(unused_argv):
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
-    # tf.app.run(main=main)
-    from cnn import nn_pred
-    tf.app.run(main=nn_pred.pred(my_model,FLAGS,'rcnn2'))
+    tf.app.run(main=main)
+    # from cnn import nn_pred
+    # tf.app.run(main=nn_pred.pred(my_model,FLAGS,'rcnn2'))
