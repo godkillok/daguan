@@ -14,8 +14,8 @@ import json
 
 flags = tf.app.flags
 flags.DEFINE_string("model_dir", "./model_dir3", "Base directory for the model.")
-flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/train*", "train file pattern")
-flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/test*", "evalue file pattern")
+flags.DEFINE_string("train_file_pattern", "/data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/train*", "train file pattern")
+flags.DEFINE_string("eval_file_pattern", "/data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/test*", "evalue file pattern")
 flags.DEFINE_float("dropout_rate", 0.5, "Drop out rate")
 flags.DEFINE_float("learning_rate", 0.02, "Learning rate")
 flags.DEFINE_float("decay_rate", 0.65, "Learning rate")
