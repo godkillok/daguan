@@ -33,7 +33,7 @@ flags.DEFINE_integer("decay_steps", 10000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("train_epoch", 1,
                      "Number of (global) training steps to perform")
-flags.DEFINE_string("data_dir", "/home/tom/new_data/daguan/text/dbpedia_csv/",
+flags.DEFINE_string("data_dir", "/data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/",
                     "Directory containing the dataset")
 flags.DEFINE_string("test_dir", " /data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/test*",
                     "Directory containing the dataset")
