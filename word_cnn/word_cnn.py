@@ -9,7 +9,7 @@ import json
 
 # for python 22.x
 # import sys
-# reload(sys)
+# reload(sys)1
 # sys.setdefaultencoding("utf-8")
 
 flags = tf.app.flags
