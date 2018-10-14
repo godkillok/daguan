@@ -13,9 +13,9 @@ from cnn import nn_pred
 # sys.setdefaultencoding("utf-8")
 #model_dir2 is the good one embedding size 128
 flags = tf.app.flags
-flags.DEFINE_string("model_dir", "/media/tom/软件/model_dir1", "Base directory for the model.")
-flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/input_data/*train.tfrecords", "train file pattern")
-flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/input_data/*eval.tfrecords", "evalue file pattern")
+flags.DEFINE_string("model_dir", "/home/tom/new_data/", "Base directory for the model.")
+flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/*train.tfrecords", "train file pattern")
+flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/*train.tfrecords", "evalue file pattern")
 flags.DEFINE_string("pred_eval_file_pattern", "/home/tom/new_data/input_data/*teval.tfrecords", "evalue file pattern")
 
 flags.DEFINE_string("pred_file_pattern", "/home/tom/new_data/input_data/*pred.tfrecords", "evalue file pattern")
@@ -43,7 +43,7 @@ flags.DEFINE_string("test_dir", " /data/tanggp/deeplearning-master/word_cnn/dbpe
                     "Directory containing the dataset")
 flags.DEFINE_string("filter_sizes", "2,3,4,5", "Comma-separated list of number of window size in each filter")
 flags.DEFINE_string("pad_word", "<pad>", "used for pad sentence")
-flags.DEFINE_string("path_vocab", "/home/tom/new_data/input_data/words.txt", "used for word index")
+flags.DEFINE_string("path_vocab", "/home/tom/new_data/words.txt", "used for word index")
 flags.DEFINE_string("fast_text", "/home/tom/new_data/super_more.bin", "used for word index")
 FLAGS = flags.FLAGS
 
@@ -85,8 +85,8 @@ def train_input_fn(filenames, shuffle_buffer_size,shuffle=True,repeat=0):
 
 def assign_pretrained_word_embedding(params):
     print("using pre-trained word emebedding.started.word2vec_model_path:",FLAGS.fast_text)
-    import fastText as ft
-    word2vec_model = ft.load_model(FLAGS.fast_text)
+    # import fastText as ft
+    # word2vec_model = ft.load_model(FLAGS.fast_text)
 
     vocab_size=params["vocab_size"]
     word_embedding_final = np.zeros((vocab_size,FLAGS.embedding_size))  # create an empty word_embedding list.
@@ -100,13 +100,13 @@ def assign_pretrained_word_embedding(params):
         vocab = {l.strip(): i for i, l in enumerate(lines)}
 
     for (word,idx) in vocab.items():
-        embedding=word2vec_model.get_word_vector(word)
-        if embedding is not None:  # the 'word' exist a embedding
-            word_embedding_final[idx,:] = embedding
-            count_exist = count_exist + 1  # assign array to this word.
-        else:  # no embedding for this word
-            word_embedding_final[idx, :] = np.random.uniform(-bound, bound, FLAGS.embed_size);
-            count_not_exist = count_not_exist + 1  # init a random value for the word.
+        # embedding=word2vec_model.get_word_vector(word)
+        # if embedding is not None:  # the 'word' exist a embedding
+        #     word_embedding_final[idx,:] = embedding
+        #     count_exist = count_exist + 1  # assign array to this word.
+        # else:  # no embedding for this word
+        word_embedding_final[idx, :] = np.random.uniform(-bound, bound, FLAGS.embed_size)
+        count_not_exist = count_not_exist + 1  # init a random value for the word.
 
     # word_embedding = tf.constant(word_embedding_final, dtype=tf.float32)  # convert to tensor
 
