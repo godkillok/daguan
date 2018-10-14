@@ -22,7 +22,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 20000, "dataset shuffle buffer size"
 flags.DEFINE_integer("sentence_max_len", 100, "max length of sentences")
 flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 5000, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 20000,
+flags.DEFINE_integer("train_steps", 10000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_string("data_dir", "/home/tom/new_data/daguan/text/dbpedia_csv/", "Directory containing the dataset")
 flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated list of number of window size in each filter")
