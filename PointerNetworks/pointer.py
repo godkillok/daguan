@@ -36,7 +36,7 @@ from tensorflow.python.ops import nn_ops
 from tensorflow.python.ops import rnn
 from tensorflow.python.ops import sparse_ops
 from tensorflow.python.ops import variable_scope as vs
-from tensorflow.contrib.rnn.python.ops import core_rnn_cell_impl
+from tensorflow.python.contrib.rnn.ops import core_rnn_cell_impl
 
 
 def pointer_decoder(decoder_inputs, initial_state, attention_states, cell,
@@ -90,7 +90,7 @@ def pointer_decoder(decoder_inputs, initial_state, attention_states, cell,
         def attention(query):
             """Point on hidden using hidden_features and query."""
             with vs.variable_scope("Attention"):
-                y = core_rnn_cell_impl._linear(query, attention_vec_size, True)
+                y = rnn_cell_impl._linear(query, attention_vec_size, True)
                 y = array_ops.reshape(y, [-1, 1, 1, attention_vec_size])
                 # Attention mask is a softmax of v^T * tanh(...).
                 s = math_ops.reduce_sum(
