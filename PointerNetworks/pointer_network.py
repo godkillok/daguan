@@ -15,6 +15,7 @@ from tensorflow.contrib import  rnn
 attn_size=40
 batch_size=1024
 max_q_len=0
+bias=True
 def generate_nested_sequence(length, min_seglen=5, max_seglen=10):
     """Generate low-high-low sequence, with indexes of the first/last high/middle elements"""
 
@@ -49,7 +50,7 @@ def print_pointer(arr, first, second):
     second_array[first] = "^1"
     second_array[second] = "^2"
     if (first == second):
-        second_array[first] = "^B"
+        second_array[first] = "^1^2"
     second_string = " " + " ".join([x for x in second_array])
     print(second_string)
 
@@ -67,18 +68,18 @@ def attention(inputs, units, weights, scope = "attention", memory_len = None, re
             # Hardcoded attention output reshaping. Equation (4), (8), (9) and (11) in the original paper.
             if len(shapes) > 2:
                 outputs = tf.reshape(outputs, (shapes[0], shapes[1], -1))
-            elif len(shapes) == 2 and shapes[0] is Params.batch_size:
+            elif len(shapes) == 2 and shapes[0] == batch_size:
                 outputs = tf.reshape(outputs, (shapes[0],1,-1))
             else:
                 outputs = tf.reshape(outputs, (1, shapes[0],-1))
             outputs_.append(outputs)
         outputs = sum(outputs_)
-        if Params.bias:
+        if bias:
             b = tf.get_variable("b", shape = outputs.shape[-1], dtype = tf.float32, initializer = tf.contrib.layers.xavier_initializer())
             outputs += b
         scores = tf.reduce_sum(tf.tanh(outputs) * v, [-1]) #score=(batch size, num of words)
-        if memory_len is not None:
-            scores = mask_attn_score(scores, memory_len)
+        # if memory_len is not None:
+        #     scores = mask_attn_score(scores, memory_len)
         return tf.nn.softmax(scores) # all attention output is softmaxed now
 
 
@@ -93,7 +94,7 @@ def question_pooling(memory, units, weights, memory_len = None, scope = "questio
 
 
 # def pointer_net(question, question_len, cell, params, scope = "pointer_network"):
-def pointer_net(enc_states, passage_len, cell, starting_generation_symbol, scope="pointer_network"):
+def pointer_net(encoder_outputs,initial_state, weights_p,cell,starting_generation_symbol,scope="pointer_network"):
     '''
     Answer pointer network as proposed in https://arxiv.org/pdf/1506.03134.pdf.
 
@@ -109,17 +110,38 @@ def pointer_net(enc_states, passage_len, cell, starting_generation_symbol, scope
         softmax logits for the answer pointer of the beginning and the end of the answer span
     '''
     with tf.variable_scope(scope):
-        weights_q, weights_p = params
-
-        initial_state =starting_generation_symbol
-        inputs = [enc_states, initial_state]
-        p1_logits = attention(inputs, attn_size, weights_p, memory_len = passage_len, scope = "attention")
+        # weights_q, weights_p = params
+        inputs = [encoder_outputs, initial_state.h]
+        p1_logits = attention(inputs, attn_size, weights_p , scope = "attention")
         scores = tf.expand_dims(p1_logits, -1)
-        attention_pool = tf.reduce_sum(scores * enc_states,1)
+        attention_pool = tf.reduce_sum(scores * encoder_outputs,1)
         _, state = cell(attention_pool, initial_state)
-        inputs = [enc_states, state]
-        p2_logits = attention(inputs, attn_size, weights_p, memory_len = passage_len, scope = "attention", reuse = True)
+        inputs = [encoder_outputs, state.h]
+        p2_logits = attention(inputs, attn_size, weights_p, scope = "attention", reuse = True)
         return tf.stack((p1_logits,p2_logits),1)
+
+def outputs(points_logits):
+    logit_1, logit_2 = tf.split(points_logits, 2, axis = 1)
+    logit_1 = tf.transpose(logit_1, [0, 2, 1])
+    dp = tf.matmul(logit_1, logit_2)
+    dp = tf.matrix_band_part(dp, 0, 15)
+    output_index_1 = tf.argmax(tf.reduce_max(dp, axis = 2), -1)
+    output_index_2 = tf.argmax(tf.reduce_max(dp, axis = 1), -1)
+    output_index = tf.stack([output_index_1,output_index_2], axis = 1)
+    # self.output_index = tf.argmax(self.points_logits, axis = 2)
+def cross_entropy(output, target):
+    cross_entropy = target * tf.log(output + 1e-8)
+    cross_entropy = -tf.reduce_sum(cross_entropy, 2) # sum across passage timestep
+    cross_entropy = tf.reduce_mean(cross_entropy, 1) # average across pointer networks output
+    return tf.reduce_mean(cross_entropy) # average across batch size
+#
+# def loss_function(input,indices,points_logits):
+#     with tf.variable_scope("loss"):
+#         shapes = input.shape
+#         indices_prob = tf.one_hot(indices, shapes[1])
+#         mean_loss = cross_entropy(points_logits,indices_prob)
+#     return mean_loss
+
 
 
 def evaluate(max_length,         # J
@@ -142,7 +164,7 @@ def evaluate(max_length,         # J
     num_indices = 2                         # I
     input_dimensions = 1                    # S  (dimensions per token)
     input_length = max_length               # J again
-    generation_value = 20.0
+    generation_value = 0
     max_q_len=max_length
     training_segment_lengths = (11, 20)     # Each of the low/high/low segment lengths
     testing_segment_lengths = (6, 10)       # "", but with no overlap whatsoever with the training seg lens
@@ -165,7 +187,7 @@ def evaluate(max_length,         # J
         actual_index_dists = tf.placeholder(tf.float32,                                           # I x B x J
                                             name="ptr-out",
                                             shape=(num_indices, batch_size, input_length))
-
+        actual_index_dists_=tf.transpose(actual_index_dists,[1,0,2])
         # Define the type of recurrent cell to be used. Only used for sizing.
         cell_enc = tf.contrib.rnn.LSTMCell(lstm_width,
                                            use_peepholes=False,
@@ -174,14 +196,10 @@ def evaluate(max_length,         # J
         cell_dec = tf.contrib.rnn.LSTMCell(lstm_width,
                                            use_peepholes=False,
                                            initializer=init)
-        passage_len=tf.placeholder(tf.float32, name="passage_len", shape=(batch_size))
-        weights_p= tf.placeholder(tf.float32,                                           # I x B x J
-                                            name="weights_p",
-                                            shape=(batch_size, input_length))
+
 
         # ###################  ENCODER
-        enc_state = cell_enc.zero_state(batch_size, tf.float32)                # B x L: 0 is starting state for RNN
-        enc_states = []
+
         embeddings = tf.get_variable(name="embeddings", dtype=tf.float32,
                                      shape=[12, lstm_width+1])
         with tf.variable_scope("rnn_encoder"):
@@ -190,44 +208,42 @@ def evaluate(max_length,         # J
             rnn_cell = rnn.LSTMCell(lstm_width,use_peepholes=False,
                                            initializer=init)
             # inputs=tf.reshape(inputs,[],dtype)
-            inputs=tf.nn.embedding_lookup(embeddings,inputs)
+            inputs_embedding=tf.nn.embedding_lookup(embeddings,inputs)
             # generate prediction
-            outputs, enc_states = tf.nn.dynamic_rnn(rnn_cell, inputs=inputs, dtype=tf.float32)
+            outputs, enc_states = tf.nn.dynamic_rnn(rnn_cell, inputs=inputs_embedding, dtype=tf.float32)
 
         # Need a dummy output to point on it. End of decoding.
         encoder_outputs =   outputs
-
-        # First calculate a concatenation of encoder outputs to put attention on.
-        attention_states =enc_states
 
 
         # ###################  DECODER
         # special symbol is max_length, which can never come from the actual data
         starting_generation_symbol = tf.constant(generation_value,                              # B x S
                                                  shape=(batch_size,
-                                                        input_dimensions),
-                                                 dtype=tf.float32)
+                                                        ),
+                                                 dtype=tf.int32)
 
+        starting_generation_symbol = tf.nn.embedding_lookup(embeddings, starting_generation_symbol)
+
+        _, state = rnn_cell(starting_generation_symbol, enc_states)
 
         weights_e=tf.get_variable(name="weights_e", dtype=tf.float32,
-                                     shape=[encoder_outputs.shape[1], attention_size])
+                                     shape=[lstm_width, attention_size])
         weights_d=tf.get_variable(name="weights_d", dtype=tf.float32,
                                      shape=[lstm_width, attention_size])
-        weights_p=[weights_e,weights_d]
+        weights_v=tf.get_variable(name="weights_v", dtype=tf.float32,
+                                     shape=[attention_size,])
+        weights_p=([weights_e,weights_d],weights_v)
+
+
         with tf.variable_scope("rnn_decoder"):
-            pointer_net(enc_states, passage_len, cell_dec, weights_p,starting_generation_symbol,scope="pointer_network")
+            point_logit=pointer_net(encoder_outputs,state, weights_p,cell_dec,starting_generation_symbol,scope="pointer_network")
 
-
-
-
-
-
-        # Compare the one-hot distribution (actuals) vs. the softmax distribution: I x (B x J)
-        idx_distributions = tf.stack(ptr_output_dists)                                                   # I x B x J
-
+            idx_distributions=tf.transpose(point_logit,[1,0,2])
         # ############## LOSS
         # RMS of difference across all batches, all indices
-        loss = tf.sqrt(tf.reduce_mean(tf.pow(idx_distributions - actual_index_dists, 2.0)))
+        with tf.variable_scope("loss"):
+            loss = cross_entropy(point_logit,actual_index_dists_)
         train = optimizer.minimize(loss)
 
         init_op = tf.global_variables_initializer()
@@ -288,7 +304,7 @@ def evaluate(max_length,         # J
                                                    np.stack(second_indexes)])}
         # 0 is loss, 1 is prob dists, 2 is actual one-hots
         results = sess.run([loss, idx_distributions, actual_index_dists], feed_dict=test_dict)
-        print("Test %s: loss %s" % (i, results[0]))
+
 
         incorrect_pointers = 0
         for batch_index in range(batch_size):
