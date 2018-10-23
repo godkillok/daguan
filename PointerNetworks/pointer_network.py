@@ -111,13 +111,13 @@ def pointer_net(encoder_outputs,initial_state, weights_p,cell,memorry,scope="poi
         inputs = [encoder_outputs, initial_state.h]
         p1_logits = attention(inputs, attn_size, weights_p ,memory_len=memorry, scope = "attention")
         scores = tf.expand_dims(p1_logits, -1)
-        attention_pool = tf.reduce_sum(scores * encoder_outputs,1)
+        attention_pool = tf.reduce_sum(scores,1)
         _, state = cell(attention_pool, initial_state)
         inputs = [encoder_outputs, state.h]
         p2_logits = attention(inputs, attn_size, weights_p, memory_len=memorry,scope = "attention", reuse = True)
         return tf.stack((p1_logits,p2_logits),1)
 
-def outputs(points_logits):
+def outputs_fun(points_logits):
     logit_1, logit_2 = tf.split(points_logits, 2, axis = 1)
     logit_1 = tf.transpose(logit_1, [0, 2, 1])
     dp = tf.matmul(logit_1, logit_2)
@@ -125,6 +125,7 @@ def outputs(points_logits):
     output_index_1 = tf.argmax(tf.reduce_max(dp, axis = 2), -1)
     output_index_2 = tf.argmax(tf.reduce_max(dp, axis = 1), -1)
     output_index = tf.stack([output_index_1,output_index_2], axis = 1)
+    return output_index
     # self.output_index = tf.argmax(self.points_logits, axis = 2)
 def cross_entropy(output, target):
     cross_entropy = target * tf.log(output + 1e-8)
@@ -173,212 +174,217 @@ def evaluate(max_length,         # J
     s = 0.5
     init = tf.random_normal_initializer(m, s)
 
-    with tf.device("/cpu:0"):
-
-        # Cleanup on aisle 6
-        tf.reset_default_graph()
-
-        # Training data placeholders
-        inputs = tf.placeholder(tf.int32, name="ptr-in", shape=(batch_size, input_length))      # B x J
-        seq_len = tf.placeholder(tf.int32, name="ptr-in", shape=(batch_size,))
-        # The one hot (over J) distributions, by batch and by index (start=1 and end=2)
-        actual_index_dists = tf.placeholder(tf.float32,                                           # I x B x J
-                                            name="ptr-out",
-                                            shape=(num_indices, batch_size, input_length))
-        actual_index_dists_=tf.transpose(actual_index_dists,[1,0,2])
-        # Define the type of recurrent cell to be used. Only used for sizing.
-        cell_enc = tf.contrib.rnn.LSTMCell(lstm_width,
-                                           use_peepholes=False,
-                                           initializer=init)
 
 
+    # Cleanup on aisle 6
+    tf.reset_default_graph()
+
+    # Training data placeholders
+    inputs = tf.placeholder(tf.int32, name="ptr-in", shape=(batch_size, input_length))      # B x J
+    seq_len = tf.placeholder(tf.int32, name="ptr-in", shape=(batch_size,))
+    # The one hot (over J) distributions, by batch and by index (start=1 and end=2)
+    actual_index_dists = tf.placeholder(tf.float32,                                           # I x B x J
+                                        name="ptr-out",
+                                        shape=(num_indices, batch_size, input_length))
+    actual_index_dists_=tf.transpose(actual_index_dists,[1,0,2])
+    # Define the type of recurrent cell to be used. Only used for sizing.
+    cell_enc = tf.contrib.rnn.LSTMCell(lstm_width,
+                                       use_peepholes=False,
+                                       initializer=init)
 
 
-        # ###################  ENCODER
-
-        embeddings = tf.get_variable(name="embeddings", dtype=tf.float32,
-                                     shape=[13, lstm_width-2])
-        with tf.variable_scope("rnn_encoder"):
-
-            # 1-layer LSTM with n_hidden units.
-            rnn_cell = rnn.LSTMCell(lstm_width,use_peepholes=False,
-                                           initializer=init)
-            # inputs=tf.reshape(inputs,[],dtype)
-            inputs_embedding=tf.nn.embedding_lookup(embeddings,inputs)
-            # inputs_g=tf.expand_dims(inputs,-1)
-            # generate prediction
-            outputs, enc_states = tf.nn.dynamic_rnn(rnn_cell, inputs=inputs_embedding, sequence_length=seq_len,dtype=tf.float32)
-
-        # Need a dummy output to point on it. End of decoding.
-        encoder_outputs =   outputs
-        cell_dec = rnn.LSTMCell(lstm_width,
-                                           use_peepholes=False,
-                                           initializer=init)
-
-        # ###################  DECODER
-        # special symbol is max_length, which can never come from the actual data
-        starting_generation_symbol = tf.constant(generation_value,                              # B x S
-                                                 shape=(batch_size,
-                                                        ),
-                                                 dtype=tf.int32)
-        #
-        starting_generation_symbol_ = tf.nn.embedding_lookup(embeddings, starting_generation_symbol)
-        _, state = rnn_cell(starting_generation_symbol_, enc_states)
-        #
-        encoder_outputs2=tf.reduce_sum(1 * encoder_outputs,1)
-        _, ini_state = cell_dec(encoder_outputs2, state)
-        # _, state = rnn_cell(starting_generation_symbol, enc_states)
-
-        weights_e=tf.get_variable(name="weights_e", dtype=tf.float32,
-                                     shape=[lstm_width, attention_size],initializer=init)
-        weights_d=tf.get_variable(name="weights_d", dtype=tf.float32,
-                                     shape=[lstm_width, attention_size],initializer=init)
-        weights_v=tf.get_variable(name="weights_v", dtype=tf.float32,
-                                     shape=[attention_size,],initializer=init)
-        weights_p=([weights_e,weights_d],weights_v)
 
 
-        with tf.variable_scope("rnn_decoder"):
-            point_logit=pointer_net(encoder_outputs,enc_states, weights_p,cell_dec,seq_len,scope="pointer_network")
+    # ###################  ENCODER
 
-            idx_distributions=tf.transpose(point_logit,[1,0,2])
-        # ############## LOSS
-        # RMS of difference across all batches, all indices
-        with tf.variable_scope("loss"):
-            loss = cross_entropy(point_logit,actual_index_dists_)
-            # loss=tf.sqrt(tf.reduce_mean(tf.pow(idx_distributions - actual_index_dists, 2.0)))
-        train = optimizer.minimize(loss)
+    embeddings = tf.get_variable(name="embeddings", dtype=tf.float32,
+                                 shape=[13, lstm_width-2])
+    with tf.variable_scope("rnn_encoder"):
 
-        init_op = tf.global_variables_initializer()
-        sess = tf.Session()  # config=config)
-        sess.run(init_op)
+        # 1-layer LSTM with n_hidden units.
+        rnn_cell = rnn.LSTMCell(lstm_width,use_peepholes=False,
+                                       initializer=init)
+        # inputs=tf.reshape(inputs,[],dtype)
+        inputs_embedding=tf.nn.embedding_lookup(embeddings,inputs)
+        # inputs_g=tf.expand_dims(inputs,-1)
+        # generate prediction
+        outputs, enc_states = tf.nn.dynamic_rnn(rnn_cell, inputs=inputs_embedding, sequence_length=seq_len,dtype=tf.float32)
 
-        # ############## TRAINING
-        train_dict = {}
-        sequences = []
-        first_indexes = []
-        second_indexes = []
-        sen_len=[]
-        train_data=[]
-        # Note that our training/testing datasets are the same size as our batch. This is
-        #   unusual and just makes the code slightly simpler. In general your dataset size
-        #   is >> your batch size and you rotate batches from the dataset through.
-        for batch_index in range(batch_size):
-            data = generate_nested_sequence(max_length,
-                                            training_segment_lengths[0],
-                                            training_segment_lengths[1])
-            train_data.append(data)
-            sequences.append(data[0])                                           # J
-            first_indexes.append(create_one_hot(input_length, data[1]))         # J
-            second_indexes.append(create_one_hot(input_length, data[2]))        # J
-            sen_len.append(data[4])
-        train_dict[inputs] = np.stack(sequences)                                # B x J
-        train_dict[actual_index_dists] = np.stack([np.stack(first_indexes),     # I x B x J
-                                          np.stack(second_indexes)])
-        train_dict[seq_len]=sen_len
+    # Need a dummy output to point on it. End of decoding.
+    encoder_outputs =   outputs
+    cell_dec = rnn.LSTMCell(lstm_width,
+                                       use_peepholes=False,
+                                       initializer=init)
 
-        losses = []
-        for step in range(num_training_loops):
-            tf_outputs = [loss, train, idx_distributions, actual_index_dists]
-            results = sess.run(tf_outputs, feed_dict=train_dict)
-            step_loss = results[0]
+    # ###################  DECODER
+    # special symbol is max_length, which can never come from the actual data
+    starting_generation_symbol = tf.constant(generation_value,                              # B x S
+                                             shape=(batch_size,
+                                                    ),
+                                             dtype=tf.int32)
+    #
+    # input_dimensions=1
+    # W_d_in = tf.get_variable("W_d_in", [input_dimensions, lstm_width], initializer=init)  # S x L
+    # b_d_in = tf.get_variable("b_d_in", [batch_size, lstm_width], initializer=init)  # B x L
+    # cell_input = tf.nn.elu(tf.matmul(starting_generation_symbol, W_d_in) + b_d_in)  # B x L
+    #
+    # output, dec_state = cell_dec(cell_input, enc_states)
 
-            if step % loss_interval == 0:
-                losses.append(step_loss)
-                print("%s: %s" % (step, step_loss))
-                sys.stdout.flush()
-            # if step >= reset_params["steps"] and step_loss > reset_params["loss"]:
-            #     return None
 
-        # ############## TESTING
-        print(" === TEST === ")
 
-        sequences = []
-        first_indexes = []
-        second_indexes = []
-        sen_len = []
-        for batch_index in range(batch_size):
-            data = generate_nested_sequence(max_length,
-                                            testing_segment_lengths[0],
-                                            testing_segment_lengths[1])
-            sequences.append(data[0])                                           # J
-            first_indexes.append(create_one_hot(input_length, data[1]))         # J
-            second_indexes.append(create_one_hot(input_length, data[2]))        # J
-            sen_len.append(data[4])
-        test_dict = {inputs: np.stack(sequences),
-                     actual_index_dists: np.stack([np.stack(first_indexes),
-                                                   np.stack(second_indexes)]),
-                     seq_len:sen_len}
-        # 0 is loss, 1 is prob dists, 2 is actual one-hots
-        results = sess.run([loss, idx_distributions, actual_index_dists], feed_dict=test_dict)
 
-        print('test loss {}'.format(results[0]))
-        incorrect_pointers = 0
-        for batch_index in range(batch_size):
+    weights_e=tf.get_variable(name="weights_e", dtype=tf.float32,
+                                 shape=[lstm_width, attention_size],initializer=init)
+    weights_d=tf.get_variable(name="weights_d", dtype=tf.float32,
+                                 shape=[lstm_width, attention_size],initializer=init)
+    weights_v=tf.get_variable(name="weights_v", dtype=tf.float32,
+                                 shape=[attention_size,],initializer=init)
+    weights_p=([weights_e,weights_d],weights_v)
 
-            first_diff = first_indexes[batch_index] - results[1][0][batch_index]
-            first_diff_max = np.max(np.abs(first_diff))
-            first_ptr = np.argmax(results[1][0][batch_index])
-            if first_diff_max >= .5:  # bit stricter than argmax but let's hold ourselves to high standards, people
-                incorrect_pointers += 1
-            second_diff = second_indexes[batch_index] - results[1][1][batch_index]
-            second_diff_max = np.max(np.abs(second_diff))
-            second_ptr = np.argmax(results[1][1][batch_index])
-            if second_diff_max >= .5:
-                incorrect_pointers += 1
 
-            print_pointer(sequences[batch_index], first_ptr, second_ptr)
-            print("")
+    with tf.variable_scope("rnn_decoder"):
+        point_logit=pointer_net(encoder_outputs,enc_states, weights_p,cell_dec,seq_len,scope="pointer_network")
 
-        test_pct = np.round(100.0 * ((2 * batch_size) - incorrect_pointers) / (2 * batch_size), 5)
+        idx_distributions=tf.transpose(point_logit,[1,0,2])
+        output_index=outputs_fun(point_logit)
+    # ############## LOSS
+    # RMS of difference across all batches, all indices
+    with tf.variable_scope("loss"):
+        loss = cross_entropy(point_logit,actual_index_dists_)
+        # loss=tf.sqrt(tf.reduce_mean(tf.pow(idx_distributions - actual_index_dists, 2.0)))
+    train = optimizer.minimize(loss)
+
+    init_op = tf.global_variables_initializer()
+    sess = tf.Session()  # config=config)
+    sess.run(init_op)
+
+    # ############## TRAINING
+    train_dict = {}
+    sequences = []
+    first_indexes = []
+    second_indexes = []
+    sen_len=[]
+    train_data=[]
+    # Note that our training/testing datasets are the same size as our batch. This is
+    #   unusual and just makes the code slightly simpler. In general your dataset size
+    #   is >> your batch size and you rotate batches from the dataset through.
+    for batch_index in range(batch_size):
+        data = generate_nested_sequence(max_length,
+                                        training_segment_lengths[0],
+                                        training_segment_lengths[1])
+        train_data.append(data)
+        sequences.append(data[0])                                           # J
+        first_indexes.append(create_one_hot(input_length, data[1]))         # J
+        second_indexes.append(create_one_hot(input_length, data[2]))        # J
+        sen_len.append(data[4])
+    train_dict[inputs] = np.stack(sequences)                                # B x J
+    train_dict[actual_index_dists] = np.stack([np.stack(first_indexes),     # I x B x J
+                                      np.stack(second_indexes)])
+    train_dict[seq_len]=sen_len
+
+    losses = []
+    for step in range(num_training_loops):
+        tf_outputs = [loss, train, idx_distributions, actual_index_dists]
+        results = sess.run(tf_outputs, feed_dict=train_dict)
+        step_loss = results[0]
+
+        if step % loss_interval == 0:
+            losses.append(step_loss)
+            print("%s: %s" % (step, step_loss))
+            sys.stdout.flush()
+        # if step >= reset_params["steps"] and step_loss > reset_params["loss"]:
+        #     return None
+
+    # ############## TESTING
+    print(" === TEST === ")
+
+    sequences = []
+    first_indexes = []
+    second_indexes = []
+    sen_len = []
+    for batch_index in range(batch_size):
+        data = generate_nested_sequence(max_length,
+                                        testing_segment_lengths[0],
+                                        testing_segment_lengths[1])
+        sequences.append(data[0])                                           # J
+        first_indexes.append(create_one_hot(input_length, data[1]))         # J
+        second_indexes.append(create_one_hot(input_length, data[2]))        # J
+        sen_len.append(data[4])
+    test_dict = {inputs: np.stack(sequences),
+                 actual_index_dists: np.stack([np.stack(first_indexes),
+                                               np.stack(second_indexes)]),
+                 seq_len:sen_len}
+    # 0 is loss, 1 is prob dists, 2 is actual one-hots
+    results = sess.run([loss, idx_distributions, actual_index_dists,output_index], feed_dict=test_dict)
+
+    print('test loss {}'.format(results[0]))
+    incorrect_pointers = 0
+    for batch_index in range(batch_size):
+
+        first_diff = first_indexes[batch_index] - results[1][0][batch_index]
+        first_diff_max = np.max(np.abs(first_diff))
+        first_ptr = np.argmax(results[1][0][batch_index])
+
+        if first_diff_max >= .5:  # bit stricter than argmax but let's hold ourselves to high standards, people
+            incorrect_pointers += 1
+        second_diff = second_indexes[batch_index] - results[1][1][batch_index]
+        second_diff_max = np.max(np.abs(second_diff))
+        second_ptr = np.argmax(results[1][1][batch_index])
+        if second_diff_max >= .5:
+            incorrect_pointers += 1
+            # print(np.max(results[1][0][batch_index]), np.max(results[1][1][batch_index]), first_ptr, second_ptr,results[2][batch_index])
+        print_pointer(sequences[batch_index], first_ptr, second_ptr)
         print("")
-        print(" %s / %s (correct/total); test pct %s" % ((2*batch_size) - incorrect_pointers,
-                                                         2 * batch_size,
-                                                         test_pct))
 
-        #==============
+    test_pct = np.round(100.0 * ((2 * batch_size) - incorrect_pointers) / (2 * batch_size), 5)
+    print("")
+    print(" %s / %s (correct/total); test pct %s" % ((2*batch_size) - incorrect_pointers,
+                                                     2 * batch_size,
+                                                     test_pct))
 
-        # ====================
-        print(" === train === ")
-        sequences = []
-        first_indexes = []
-        second_indexes = []
-        sen_len = []
-        for batch_index, data in enumerate(train_data):
-            sequences.append(data[0])  # J
-            first_indexes.append(create_one_hot(input_length, data[1]))  # J
-            second_indexes.append(create_one_hot(input_length, data[2]))  # J
-            sen_len.append(data[4])
-        test_dict = {inputs: np.stack(sequences),
-                     actual_index_dists: np.stack([np.stack(first_indexes),
-                                                   np.stack(second_indexes)]),
-                     seq_len: sen_len}
-        # 0 is loss, 1 is prob dists, 2 is actual one-hots
-        results = sess.run([loss, idx_distributions, actual_index_dists], feed_dict=test_dict)
+    #==============
 
-        incorrect_pointers = 0
-        for batch_index in range(batch_size):
+    # ====================
+    print(" === train === ")
+    sequences = []
+    first_indexes = []
+    second_indexes = []
+    sen_len = []
+    for batch_index, data in enumerate(train_data):
+        sequences.append(data[0])  # J
+        first_indexes.append(create_one_hot(input_length, data[1]))  # J
+        second_indexes.append(create_one_hot(input_length, data[2]))  # J
+        sen_len.append(data[4])
+    test_dict = {inputs: np.stack(sequences),
+                 actual_index_dists: np.stack([np.stack(first_indexes),
+                                               np.stack(second_indexes)]),
+                 seq_len: sen_len}
+    # 0 is loss, 1 is prob dists, 2 is actual one-hots
+    results = sess.run([loss, idx_distributions, actual_index_dists], feed_dict=test_dict)
 
-            first_diff = first_indexes[batch_index] - results[1][0][batch_index]
-            first_diff_max = np.max(np.abs(first_diff))
-            first_ptr = np.argmax(results[1][0][batch_index])
-            if first_diff_max >= .5:  # bit stricter than argmax but let's hold ourselves to high standards, people
-                incorrect_pointers += 1
-            second_diff = second_indexes[batch_index] - results[1][1][batch_index]
-            second_diff_max = np.max(np.abs(second_diff))
-            second_ptr = np.argmax(results[1][1][batch_index])
-            if second_diff_max >= .5:
-                incorrect_pointers += 1
+    incorrect_pointers = 0
+    for batch_index in range(batch_size):
 
-            print_pointer(sequences[batch_index], first_ptr, second_ptr)
-            print("")
+        first_diff = first_indexes[batch_index] - results[1][0][batch_index]
+        first_diff_max = np.max(np.abs(first_diff))
+        first_ptr = np.argmax(results[1][0][batch_index])
+        if first_diff_max >= .5:  # bit stricter than argmax but let's hold ourselves to high standards, people
+            incorrect_pointers += 1
+        second_diff = second_indexes[batch_index] - results[1][1][batch_index]
+        second_diff_max = np.max(np.abs(second_diff))
+        second_ptr = np.argmax(results[1][1][batch_index])
+        if second_diff_max >= .5:
+            incorrect_pointers += 1
 
-        train_pct = np.round(100.0 * ((2 * batch_size) - incorrect_pointers) / (2 * batch_size), 5)
+        print_pointer(sequences[batch_index], first_ptr, second_ptr)
         print("")
-        print(" %s / %s (correct/total); train pct %s" % ((2 * batch_size) - incorrect_pointers,
-                                                         2 * batch_size,
-                                                         test_pct))
-        sys.stdout.flush()
+
+    train_pct = np.round(100.0 * ((2 * batch_size) - incorrect_pointers) / (2 * batch_size), 5)
+    print("")
+    print(" %s / %s (correct/total); train pct %s" % ((2 * batch_size) - incorrect_pointers,
+                                                     2 * batch_size,
+                                                     test_pct))
+    sys.stdout.flush()
     return losses, test_pct,train_pct
 
 
@@ -386,7 +392,7 @@ max_reset_retries = 20
 for reset_loop_index in range(max_reset_retries):
 
     # Create optimizer - AdaGrad works well on this problem
-    learning_rate =1
+    learning_rate =0.2
     adagrad_optimizer = tf.train.AdadeltaOptimizer(learning_rate)
 
     lstm_blend = 10
@@ -394,7 +400,7 @@ for reset_loop_index in range(max_reset_retries):
                       batch_size=1024,
                       lstm_width=lstm_blend,
                       num_blend_units=lstm_blend,
-                      num_training_loops=20000,
+                      num_training_loops=5000,
                       loss_interval=100,
                       optimizer=adagrad_optimizer)
 
