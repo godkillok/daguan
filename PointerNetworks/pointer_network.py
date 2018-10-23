@@ -12,7 +12,7 @@ from tensorflow.contrib import  rnn
 # Uncomment this to stop corner printing and see full/verbatim
 #np.set_printoptions(threshold=np.nan)
 
-attn_size=40
+attn_size=10
 batch_size=1024
 max_q_len=0
 bias=True
@@ -156,16 +156,16 @@ def evaluate(max_length,         # J
     # B: batch_size (param *)
     # L: lstm_width* units
     # D: Blend units
-    global max_q_len
+
 
     num_indices = 2                         # I
-    input_dimensions = 1                    # S  (dimensions per token)
+                       # S  (dimensions per token)
     input_length = max_length               # J again
     generation_value = 12
-    max_q_len=max_length
+
     training_segment_lengths = (11, 20)     # Each of the low/high/low segment lengths
     testing_segment_lengths = (6, 10)       # "", but with no overlap whatsoever with the training seg lens
-    attn_size = num_blend_units
+
     reset_params = {"steps": 3000, "loss": .03}
     attention_size=lstm_width
     # Initialization parameters
@@ -394,7 +394,7 @@ for reset_loop_index in range(max_reset_retries):
                       batch_size=1024,
                       lstm_width=lstm_blend,
                       num_blend_units=lstm_blend,
-                      num_training_loops=5000,
+                      num_training_loops=20000,
                       loss_interval=100,
                       optimizer=adagrad_optimizer)
 
