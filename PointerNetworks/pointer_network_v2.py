@@ -117,6 +117,23 @@ def pointer_net(encoder_outputs,initial_state, weights_p,cell,memorry,scope="poi
         p2_logits = attention(inputs, attn_size, weights_p, memory_len=memorry,scope = "attention", reuse = True)
         return tf.stack((p1_logits,p2_logits),1)
 
+def prt(encoder_outputs,num_units,memorry_lengths,cell,labels):
+    labels = tf.unstack(labels, axis=1)
+
+    hidden_size = encoder_outputs.get_shape()[1]
+    attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
+        num_units=num_units, memory=encoder_outputs,
+        memory_sequence_length=memorry_lengths)
+
+    answer_ptr_cell_input_fn = lambda curr_input, context: context
+    cell = tf.contrib.rnn.BasicLSTMCell(hidden_size, state_is_tuple=True)
+    attn_cell = tf.contrib.seq2seq.AttentionWrapper(
+        cell, attention_mechanism,cell_input_fn=answer_ptr_cell_input_fn,output_attention=False)
+
+    logits, _ = tf.nn.static_rnn(attn_cell, labels, dtype=tf.float32)
+    logits=tf.stack(logits, axis=1)
+    return logits
+
 def outputs(points_logits):
     logit_1, logit_2 = tf.split(points_logits, 2, axis = 1)
     logit_1 = tf.transpose(logit_1, [0, 2, 1])
@@ -240,14 +257,17 @@ def evaluate(max_length,         # J
 
 
     with tf.variable_scope("rnn_decoder"):
-        point_logit=pointer_net(encoder_outputs,enc_states, weights_p,cell_dec,seq_len,scope="pointer_network")
+
+        point_logit=prt(encoder_outputs, attn_size, seq_len, cell_dec, actual_index_dists_)
+
+        # point_logit=pointer_net(encoder_outputs,enc_states, weights_p,cell_dec,seq_len,scope="pointer_network")
 
         idx_distributions=tf.transpose(point_logit,[1,0,2])
     # ############## LOSS
     # RMS of difference across all batches, all indices
     with tf.variable_scope("loss"):
-        loss = cross_entropy(point_logit,actual_index_dists_)
-        # loss=tf.sqrt(tf.reduce_mean(tf.pow(idx_distributions - actual_index_dists, 2.0)))
+        # loss = cross_entropy(point_logit,actual_index_dists_)
+        loss=tf.sqrt(tf.reduce_mean(tf.pow(idx_distributions - actual_index_dists, 2.0)))
     train = optimizer.minimize(loss)
 
     init_op = tf.global_variables_initializer()

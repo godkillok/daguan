@@ -104,7 +104,6 @@ def pointer_net(passage, passage_len,  cell, weights_p, scope = "pointer_network
         softmax logits for the answer pointer of the beginning and the end of the answer span
     '''
     with tf.variable_scope(scope):
-
         shapes = passage.get_shape().as_list()
         inputs = [passage]
         p1_logits = attention(inputs, attn_size, weights_p, memory_len = passage_len, scope = "attention")

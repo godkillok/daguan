@@ -41,7 +41,7 @@ flags.DEFINE_integer("train_epoch", 1,
                      "Number of (global) training steps to perform")
 flags.DEFINE_string("data_dir", "/home/tom/new_data/input_data/",
                     "Directory containing the dataset")
-flags.DEFINE_string("test_dir", " /data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/test*",
+flags.DEFINE_string("test_dir", " /data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/testtest*",
                     "Directory containing the dataset")
 flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated list of number of window size in each filter")
 flags.DEFINE_string("pad_word", "<pad>", "used for pad sentence")
@@ -156,6 +156,9 @@ def my_model(features, labels, mode, params):
     def _train_op_fn(loss):
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
+
+
+
             return optimizer.minimize(loss, global_step=tf.train.get_global_step())
 
     my_head = tf.contrib.estimator.multi_class_head(n_classes=FLAGS.num_classes)

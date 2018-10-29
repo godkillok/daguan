@@ -61,7 +61,6 @@ def parse_exmp(serialized_example):
 
     return feats, labels
 
-
 def train_input_fn(filenames, shuffle_buffer_size,shuffle=True,repeat=0):
     # dataset = tf.data.TFRecordDataset(filenames) filename is a string
     print('train tfrecord')
@@ -81,7 +80,6 @@ def train_input_fn(filenames, shuffle_buffer_size,shuffle=True,repeat=0):
     print(dataset.output_types)
     print(dataset.output_shapes)
     return dataset
-
 
 def assign_pretrained_word_embedding(params):
     print("using pre-trained word emebedding.started.word2vec_model_path:",FLAGS.fast_text)
@@ -113,8 +111,6 @@ def assign_pretrained_word_embedding(params):
     print("word. exists embedding:", count_exist, " ;word not exist embedding:", count_not_exist)
     print("using pre-trained word emebedding.ended...")
     return word_embedding_final
-
-
 
 def my_model(features, labels, mode, params):
     sentence = features['text']
@@ -212,8 +208,6 @@ def my_model(features, labels, mode, params):
         logits=logits,
         train_op_fn=_train_op_fn
     )
-
-
 
 
 def my_head():
@@ -324,8 +318,6 @@ def main(unused_argv):
     print("evalue eval set")
     classifier.evaluate(input_fn=input_fn_for_eval,steps=100)
     print("after train and evaluate")
-
-
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
