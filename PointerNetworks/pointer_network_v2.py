@@ -263,7 +263,7 @@ def evaluate(max_length,         # J
         # point_logit=pointer_net(encoder_outputs,enc_states, weights_p,cell_dec,seq_len,scope="pointer_network")
 
         idx_distributions=tf.transpose(point_logit,[1,0,2])
-    # ############## LOSS
+    # ############## LOSS1
     # RMS of difference across all batches, all indices
     with tf.variable_scope("loss"):
         # loss = cross_entropy(point_logit,actual_index_dists_)
