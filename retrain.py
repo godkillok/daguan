@@ -743,6 +743,7 @@ def add_final_retrain_ops(class_count, final_tensor_name, bottleneck_tensor,
     bottleneck input and ground truth input.
   """
   batch_size, bottleneck_tensor_size = bottleneck_tensor.get_shape().as_list()
+  print('batch_size {} , bottleneck_tensor_size {}'.format(batch_size, bottleneck_tensor_size))
   assert batch_size is None, 'We want to work with arbitrary batch size.'
   with tf.name_scope('input'):
     bottleneck_input = tf.placeholder_with_default(
