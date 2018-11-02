@@ -106,7 +106,7 @@ def assign_pretrained_word_embedding(params):
         word_embedding_final[idx, :] = np.random.uniform(-bound, bound, FLAGS.embed_size)
         count_not_exist = count_not_exist + 1  # init a random value for the word.
 
-    # word_embedding = tf.constant(word_embedding_final, dtype=tf.float32)  # convert to tensor
+    # word_embedding = tf.constant(word_embedding_final, dtype=tf.float32)  # convert to tensor2
 
     print("word. exists embedding:", count_exist, " ;word not exist embedding:", count_not_exist)
     print("using pre-trained word emebedding.ended...")
