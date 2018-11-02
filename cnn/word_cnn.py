@@ -173,7 +173,7 @@ def my_model(features, labels, mode, params):
         h_pool_flat = tf.layers.dropout(h_pool_flat, params['dropout_rate'],
                                         training=(mode == tf.estimator.ModeKeys.TRAIN))
     h_pool_flat = tf.layers.batch_normalization(h_pool_flat, training=(mode == tf.estimator.ModeKeys.TRAIN))
-
+    print(h_pool_flat)
     logits = tf.layers.dense(h_pool_flat, FLAGS.num_classes, activation=None)
 
     # learning_rate = tf.train.exponential_decay(params['learning_rate'], tf.train.get_global_step(), FLAGS.decay_steps,
