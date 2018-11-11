@@ -15,7 +15,7 @@ import pandas as pd
 
   
 
-# Multinomial Naive Bayes Classifier  
+# Multinomial Naive Bayes Classifier  1
 
 def naive_bayes_classifier(train_x, train_y):  
 
