@@ -106,7 +106,7 @@ def assign_pretrained_word_embedding(params):
         word_embedding_final[idx, :] = np.random.uniform(-bound, bound, FLAGS.embed_size)
         count_not_exist = count_not_exist + 1  # init a random value for the word.
 
-    # word_embedding = tf.constant(word_embedding_final, dtype=tf.float32)  # convert to tensor
+    # word_embedding = tf.constant(word_embedding_final, dtype=tf.float32)  # convert to tensor2
 
     print("word. exists embedding:", count_exist, " ;word not exist embedding:", count_not_exist)
     print("using pre-trained word emebedding.ended...")
@@ -173,7 +173,7 @@ def my_model(features, labels, mode, params):
         h_pool_flat = tf.layers.dropout(h_pool_flat, params['dropout_rate'],
                                         training=(mode == tf.estimator.ModeKeys.TRAIN))
     h_pool_flat = tf.layers.batch_normalization(h_pool_flat, training=(mode == tf.estimator.ModeKeys.TRAIN))
-
+    print(h_pool_flat)
     logits = tf.layers.dense(h_pool_flat, FLAGS.num_classes, activation=None)
 
     # learning_rate = tf.train.exponential_decay(params['learning_rate'], tf.train.get_global_step(), FLAGS.decay_steps,

@@ -152,6 +152,7 @@ def my_model(features, labels, mode, params):
     if 'dropout_rate' in params and params['dropout_rate'] > 0.0:
         h_pool_flat = tf.layers.dropout(h_pool_flat, params['dropout_rate'],
                                         training=(mode == tf.estimator.ModeKeys.TRAIN))
+    print(h_pool_flat.shape)
     logits = tf.layers.dense(h_pool_flat, FLAGS.num_classes, activation=None)
 
     learning_rate = tf.train.exponential_decay(params['learning_rate'], tf.train.get_global_step(), FLAGS.decay_steps,
