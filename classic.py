@@ -210,7 +210,8 @@ def train_classifiers(label_i):
             print('accuracy: %.2f%%' % (100 * accuracy))
 
     return model_save
-
+def  predict_hard_vote():
+    pass
 
 def create_rand_sample(path):
     with  open(path, 'r') as f:
