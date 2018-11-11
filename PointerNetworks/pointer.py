@@ -36,7 +36,7 @@ from tensorflow.python.ops import nn_ops
 from tensorflow.python.ops import rnn
 from tensorflow.python.ops import sparse_ops
 from tensorflow.python.ops import variable_scope as vs
-from tensorflow.python.contrib.rnn.ops import core_rnn_cell_impl
+# from tensorflow.python.contrib.rnn.ops import core_rnn_cell_impl
 
 
 def pointer_decoder(decoder_inputs, initial_state, attention_states, cell,

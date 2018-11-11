@@ -22,6 +22,7 @@ def generate_nested_sequence(length, min_seglen=5, max_seglen=10):
     seq = seq_before + seq_during + seq_after
 
     # Pad it up to max len with 0's
+
     seq = seq + ([0] * (length - len(seq)))
     return [seq, len(seq_before), len(seq_before) + len(seq_during)-1]
 
@@ -72,8 +73,8 @@ def evaluate(max_length,         # J
     input_length = max_length               # J again
     generation_value = 20.0
 
-    training_segment_lengths = (11, 20)     # Each of the low/high/low segment lengths
-    testing_segment_lengths = (6, 10)       # "", but with no overlap whatsoever with the training seg lens
+    training_segment_lengths = (16, 20)     # Each of the low/high/low segment lengths
+    testing_segment_lengths = (11, 15)       # "", but with no overlap whatsoever with the training seg lens
 
     reset_params = {"steps": 3000, "loss": .03}
 
@@ -193,7 +194,7 @@ def evaluate(max_length,         # J
 
         # ############## LOSS
         # RMS of difference across all batches, all indices
-        loss = tf.sqrt(tf.reduce_mean(tf.pow(idx_distributions - actual_index_dists, 2.0)))
+        loss = tf.sqrt(tf.reduce_mean(tf.pow(idx_distributions - actual_index_dists, 2.0))a)
         train = optimizer.minimize(loss)
 
         init_op = tf.global_variables_initializer()
@@ -268,7 +269,7 @@ def evaluate(max_length,         # J
             second_ptr = np.argmax(results[1][1][batch_index])
             if second_diff_max >= .5:
                 incorrect_pointers += 1
-
+            print(np.max(results[1][0][batch_index]),np.max(results[1][1][batch_index]),first_ptr,second_ptr)
             print_pointer(sequences[batch_index], first_ptr, second_ptr)
             print("")
 
@@ -294,7 +295,7 @@ for reset_loop_index in range(max_reset_retries):
                       batch_size=1024,
                       lstm_width=lstm_blend,
                       num_blend_units=lstm_blend,
-                      num_training_loops=4000,
+                      num_training_loops=5000,
                       loss_interval=50,
                       optimizer=adagrad_optimizer)
 

@@ -9,13 +9,13 @@ import json
 
 # for python 22.x
 # import sys
-# reload(sys)1
+# reload(sys)11
 # sys.setdefaultencoding("utf-8")
 
 flags = tf.app.flags
 flags.DEFINE_string("model_dir", "./model_dir3", "Base directory for the model.")
-flags.DEFINE_string("train_file_pattern", "/data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/train_*", "train file pattern")
-flags.DEFINE_string("eval_file_pattern", "/data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/test_*", "evalue file pattern")
+flags.DEFINE_string("train_file_pattern", "/home/tom/new_data/daguan/text/dbpedia_csv/train*.tfrecords", "train file pattern")
+flags.DEFINE_string("eval_file_pattern", "/home/tom/new_data/daguan/text/dbpedia_csv/train*.tfrecords", "evalue file pattern")
 flags.DEFINE_float("dropout_rate", 0.5, "Drop out rate")
 flags.DEFINE_float("learning_rate", 0.02, "Learning rate")
 flags.DEFINE_float("decay_rate", 0.65, "Learning rate")
@@ -33,7 +33,7 @@ flags.DEFINE_integer("decay_steps", 10000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_integer("train_epoch", 1,
                      "Number of (global) training steps to perform")
-flags.DEFINE_string("data_dir", "/data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/",
+flags.DEFINE_string("data_dir", "/home/tom/new_data/daguan/text/dbpedia_csv/",
                     "Directory containing the dataset")
 flags.DEFINE_string("test_dir", " /data/tanggp/deeplearning-master/word_cnn/dbpedia_csv/test*",
                     "Directory containing the dataset")

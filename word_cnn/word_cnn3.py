@@ -14,7 +14,7 @@ import json
 flags = tf.app.flags
 flags.DEFINE_string("model_dir", "./model_dir2", "Base directory for the model.")
 flags.DEFINE_float("dropout_rate", 0.25, "Drop out rate")
-flags.DEFINE_float("learning_rate", 0.001, "Learning rate")
+flags.DEFINE_float("learning_rate", 0.3, "Learning rate")
 flags.DEFINE_integer("embedding_size", 128, "embedding size")
 flags.DEFINE_integer("num_filters", 100, "number of filters")
 flags.DEFINE_integer("num_classes", 14, "number of classes")
@@ -22,7 +22,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 20000, "dataset shuffle buffer size"
 flags.DEFINE_integer("sentence_max_len", 100, "max length of sentences")
 flags.DEFINE_integer("batch_size", 128, "number of instances in a batch")
 flags.DEFINE_integer("save_checkpoints_steps", 5000, "Save checkpoints every this many steps")
-flags.DEFINE_integer("train_steps", 20000,
+flags.DEFINE_integer("train_steps", 10000,
                      "Number of (global) training steps to perform")
 flags.DEFINE_string("data_dir", "/home/tom/new_data/daguan/text/dbpedia_csv/", "Directory containing the dataset")
 flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated list of number of window size in each filter")
@@ -136,8 +136,8 @@ def main(unused_argv):
   assert os.path.isfile(path_words), "No vocab file found at {}, run build_vocab.py first".format(path_words)
   #words = tf.contrib.lookup.index_table_from_file(path_words, num_oov_buckets=config["num_oov_buckets"])
 
-  path_train = os.path.join(FLAGS.data_dir, 'train.csv')
-  path_eval = os.path.join(FLAGS.data_dir, 'test.csv')
+  path_train = os.path.join(FLAGS.data_dir, 'train_sh.csv')
+  path_eval = os.path.join(FLAGS.data_dir, 'test_shuf.csv')
 
   classifier = tf.estimator.Estimator(
     model_fn=my_model,

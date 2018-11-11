@@ -387,7 +387,7 @@ max_reset_retries = 20
 for reset_loop_index in range(max_reset_retries):
 
     # Create optimizer - AdaGrad works well on this problem
-    learning_rate =1
+    learning_rate =0.1
     adagrad_optimizer = tf.train.AdadeltaOptimizer(learning_rate)
 
     lstm_blend = 10
@@ -395,7 +395,7 @@ for reset_loop_index in range(max_reset_retries):
                       batch_size=1024,
                       lstm_width=lstm_blend,
                       num_blend_units=lstm_blend,
-                      num_training_loops=20000,
+                      num_training_loops=4000,
                       loss_interval=100,
                       optimizer=adagrad_optimizer)
 
