@@ -8,14 +8,14 @@ import random
 import numpy as np
 import tensorflow as tf
 
-from dataset import DataGenerator
-from pointer import pointer_decoder
+from PointerNetworks.dataset import DataGenerator
+from PointerNetworks.pointer import pointer_decoder
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('batch_size', 32, 'Batch size.  ')
 flags.DEFINE_integer('max_steps', 10, 'Number of numbers to sort.  ')
-flags.DEFINE_integer('rnn_size', 32, 'RNN size.  ')
+flags.DEFINE_integer('rnn_size', 16, 'RNN size.  ')
 
 
 class PointerNetwork(object):
@@ -43,7 +43,7 @@ class PointerNetwork(object):
 
         cell = tf.contrib.rnn.GRUCell(size)
         if num_layers > 1:
-            cell = tf.contrib.rnn.MultiRNNCell([single_cell] * num_layers)
+            cell = tf.contrib.rnn.MultiRNNCell([cell] * num_layers)
 
         self.encoder_inputs = []
         self.decoder_inputs = []

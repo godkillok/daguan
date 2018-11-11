@@ -7,6 +7,7 @@ import sys
 import tensorflow as tf
 from tensorflow.contrib.rnn import RNNCell
 from tensorflow.contrib import  rnn
+from PointerNetworks.attention_wrapper import  AttentionWrapper,BahdanauAttention
 # See https://medium.com/@devnag/pointer-networks-in-tensorflow-with-sample-code-14645063f264
 
 # Uncomment this to stop corner printing and see full/verbatim
@@ -120,15 +121,15 @@ def pointer_net(encoder_outputs,initial_state, weights_p,cell,memorry,scope="poi
 def prt(encoder_outputs,num_units,memorry_lengths,cell,labels):
     labels = tf.unstack(labels, axis=1)
 
-    hidden_size = encoder_outputs.get_shape()[1]
-    attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
-        num_units=num_units, memory=encoder_outputs,
+    hidden_size = encoder_outputs.get_shape()[-1]
+    attention_mechanism =BahdanauAttention(
+        num_units=hidden_size, memory=encoder_outputs,
         memory_sequence_length=memorry_lengths)
 
     answer_ptr_cell_input_fn = lambda curr_input, context: context
     cell = tf.contrib.rnn.BasicLSTMCell(hidden_size, state_is_tuple=True)
-    attn_cell = tf.contrib.seq2seq.AttentionWrapper(
-        cell, attention_mechanism,cell_input_fn=answer_ptr_cell_input_fn,output_attention=False)
+    attn_cell =AttentionWrapper(
+        cell, attention_mechanism,cell_input_fn=answer_ptr_cell_input_fn)
 
     logits, _ = tf.nn.static_rnn(attn_cell, labels, dtype=tf.float32)
     logits=tf.stack(logits, axis=1)

@@ -303,7 +303,7 @@ class HierarchicalAttention:
         sentence_representation_squeeze = [tf.squeeze(x, axis=1) for x in
                                            sentence_representation_splitted]  # it is a list.length is num_sentences,each element is [batch_size, hidden_size*2]
         # demension_1 = int(tf.get_shape(sentence_representation_squeeze[0])[0]) #scalar: batch_size
-        h_t = tf.ones((self.batch_size, self.hidden_size * 2))  # TODO
+        h_t = tf.ones((self.batch_size, self.hidden_size * 2))
         h_t_forward_list = []
         for time_step, Xt in enumerate(sentence_representation_squeeze):  # Xt:[batch_size, hidden_size*2]
             h_t = self.gru_single_step_sentence_level(Xt,

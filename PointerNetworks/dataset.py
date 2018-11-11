@@ -44,3 +44,5 @@ class DataGenerator(object):
             writer_outputs_batch[N][b, 0] = 1.0
 
         return reader_input_batch, decoder_input_batch, writer_outputs_batch
+# dg=DataGenerator()
+# dg.next_batch(31, 10, train_mode=True)
