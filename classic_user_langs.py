@@ -322,3 +322,8 @@ if __name__ == '__main__':
 
     if model_save_file != None:
         pickle.dump(model_save, open(model_save_file, 'wb'))
+
+        '''
+        {'edu': 0, 'lifestyle': 1, 'news': 2, 'education': 3, 'entertainment': 4, 'sports': 5, 'travel': 6, 'music': 7, 'game': 8, 'comedy': 9, 'movietrailer': 10, 'kid': 11, 'animal': 12, 'fit': 13, 'cook': 14}
+        
+        '''
