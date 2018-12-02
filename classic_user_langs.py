@@ -325,5 +325,5 @@ if __name__ == '__main__':
 
         '''1
         {'edu': 0, 'lifestyle': 1, 'news': 2, 'education': 3, 'entertainment': 4, 'sports': 5, 'travel': 6, 'music': 7, 'game': 8, 'comedy': 9, 'movietrailer': 10, 'kid': 11, 'animal': 12, 'fit': 13, 'cook': 14}
-        
+        (['Science_&_Technology', 'Sports', 'Howto_&_Style', 'Film_&_Animation', 'Entertainment', 'Education', 'News_&_Politics', 'Music', 'Shows', 'Autos_&_Vehicles', 'Comedy', 'Travel_&_Events', 'Gaming', 'Pets_&_Animals'])
         '''
